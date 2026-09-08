@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, readFileSync, symlinkSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readdirSync, readFileSync, symlinkSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -18,9 +18,13 @@ describe("--version from the packed tarball", () => {
     const tmp = mkdtempSync(path.join(os.tmpdir(), "actuals-version-"));
     const build = spawnSync("npm", ["run", "build", "--silent"], { cwd: ROOT, encoding: "utf8" });
     expect(build.status, build.stderr).toBe(0);
-    const pack = spawnSync("npm", ["pack", "--json", "--ignore-scripts", "--pack-destination", tmp], { cwd: ROOT, encoding: "utf8" });
+    // the tarball's name is read from the temp folder, not from pack's stdout: the --json
+    // shape changed between npm 11 and 12 and this test must pass on 10, 11 and 12
+    const pack = spawnSync("npm", ["pack", "--ignore-scripts", "--pack-destination", tmp], { cwd: ROOT, encoding: "utf8" });
     expect(pack.status, pack.stderr).toBe(0);
-    const tarball = (JSON.parse(pack.stdout) as Array<{ filename: string }>)[0]!.filename;
+    const tarballs = readdirSync(tmp).filter((f) => f.endsWith(".tgz"));
+    expect(tarballs, "exactly one tarball in the temp folder").toHaveLength(1);
+    const tarball = tarballs[0]!;
     execFileSync("tar", ["-xzf", path.join(tmp, tarball), "-C", tmp]);
     const cli = path.join(tmp, "package", "dist", "cli.js");
     expect(execFileSync(process.execPath, [cli, "--version"], { cwd: tmp, encoding: "utf8" }).trim()).toBe(pkg.version);

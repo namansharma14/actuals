@@ -62,9 +62,9 @@ jobs:
         run: npm i -g npm@11 && npm --version
       - run: npm ci
       - run: npm run build
-      - name: Publish with provenance (off until RELEASE_PUBLISH=true)
+      - name: Publish (trusted publishing; off until RELEASE_PUBLISH=true)
         if: vars.RELEASE_PUBLISH == 'true'
-        run: npm publish --provenance --access public
+        run: npm publish --access public
       - name: Publish is off
         if: vars.RELEASE_PUBLISH != 'true'
         run: echo "RELEASE_PUBLISH is not 'true'; nothing published. Today's release publishes by hand." >> "$GITHUB_STEP_SUMMARY"
