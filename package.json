@@ -32,7 +32,6 @@
     "check": "npm run lint && npm run types && npm run test && npm run gates -- --check",
     "prepublishOnly": "npm run check && npm run build"
   },
-  "dependencies": {},
   "devDependencies": {
     "@eslint/js": "^9.12.0",
     "@types/node": "^20.14.0",
@@ -44,5 +43,6 @@
     "typescript-eslint": "^8.8.0",
     "vitest": "^2.1.0",
     "zod": "^3.23.8"
-  }
+  },
+  "homepage": "https://getactuals.net"
 }

@@ -581,11 +581,11 @@ export const CLIENT_JS = `
     var mins = Math.max(0, Math.round((Date.parse(r.end) - Date.parse(r.start)) / 60000));
     var started = r.parent ? (function () { var p = runById(r.parent); return "started by " + lesc(p ? (p.agent_type || "an agent") : ("agent " + String(r.parent).slice(0, 8))); })() : "top level (you started it)";
     var why = r.fate === "died" ? "open when the session ended" : r.fate === "still_running" ? "still running now" : "returned to its parent";
-    var files = r.files || [];
+    var files = r.files || [], hidden = r.files_hidden || 0;
     d.innerHTML = '<div class="ld-head">' + lesc(r.agent_type || "agent") + ' <span class="ld-fate' + (r.fate === "died" ? " warn" : "") + '">' + lesc(String(r.fate).replace(/_/g, " ")) + '</span></div>'
       + '<div class="ld-meta">' + started + (liveTree && liveTree.model ? " · " + lesc(liveTree.model) : "") + ' · depth ' + r.depth + ' · ' + mins + ' min · ' + why + '</div>'
-      + '<div class="ld-fh">written so far (' + files.length + (files.length >= 40 ? "+" : "") + ") · fate on the next run</div>"
-      + (files.length ? '<ul class="ld-files">' + files.map(function (f) { return "<li>" + lesc(f) + "</li>"; }).join("") + "</ul>" : '<p class="fine">no files written yet</p>');
+      + '<div class="ld-fh">written so far (' + (files.length + hidden) + (files.length >= 40 ? "+" : "") + ") · fate on the next run</div>"
+      + (files.length ? '<ul class="ld-files">' + files.map(function (f) { return "<li>" + lesc(f) + "</li>"; }).join("") + "</ul>" : hidden ? '<p class="fine">' + hidden + (hidden === 1 ? " file" : " files") + ' written (paths hidden in this preview)</p>' : '<p class="fine">no files written yet</p>');
     if (t0) d.setAttribute("data-render-ms", String(Math.round((performance.now() - t0) * 100) / 100));
     highlight(id);
   }

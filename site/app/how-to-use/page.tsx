@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { CommandPill } from "../../components/command-pill";
 import { Shell } from "../../components/shell";
-import "./guide.css";
 
 export const dynamic = "force-static";
 
@@ -22,8 +21,8 @@ const Ui = ({ children, warm }: { children: React.ReactNode; warm?: boolean }) =
 /**
  * The field guide, on the site: seven steps in the order a first run meets them, each with
  * the report as it looks at that step, then the one difference between a terminal and VS
- * Code, and the commands. The words are the guide's. The pictures of the report at each step
- * are held until they are captured from a redacted run.
+ * Code, and the commands. The words are the guide's; the pictures are the report on a real
+ * repository, redacted.
  */
 export default function HowToUse() {
   return (
@@ -67,6 +66,16 @@ export default function HowToUse() {
                 second.
               </li>
             </ul>
+            <figure className="ac-guide-fig">
+              <img
+                src="/guide/report-top.webp"
+                width={1440}
+                height={900}
+                alt="The top of the Actuals report: scope controls, then the five headline figures"
+                decoding="async"
+              />
+              <figcaption>The headline row. The line under it tells you what to do next: click a session.</figcaption>
+            </figure>
           </li>
 
           <li className="ac-guide-step" id="scope">
@@ -86,6 +95,17 @@ export default function HowToUse() {
                 Click <Ui>SESSIONS</Ui> to tick or untick individual sessions, then re-run.
               </li>
             </ul>
+            <figure className="ac-guide-fig">
+              <img
+                src="/guide/picker.webp"
+                width={1440}
+                height={900}
+                alt="The sessions picker open over the report, with a checkbox per session, its cost and its agent count"
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption>Each session shows its date, name, cost and how many agents it started.</figcaption>
+            </figure>
           </li>
 
           <li className="ac-guide-step" id="drawer">
@@ -105,6 +125,17 @@ export default function HowToUse() {
               </li>
               <li>The small chart is that session&apos;s concurrency: how many agents were alive at once.</li>
             </ul>
+            <figure className="ac-guide-fig">
+              <img
+                src="/guide/drawer.webp"
+                width={1440}
+                height={900}
+                alt="The session drawer: a list of agent runs with model, minutes, cost and outcome; one run expanded to show the files it wrote"
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption>One run expanded. The files it wrote are listed with how many git still tracks.</figcaption>
+            </figure>
           </li>
 
           <li className="ac-guide-step" id="label">
@@ -123,6 +154,17 @@ export default function HowToUse() {
                 report re-runs.
               </li>
             </ul>
+            <figure className="ac-guide-fig">
+              <img
+                src="/guide/drawer-label.webp"
+                width={1440}
+                height={900}
+                alt="The label control at the top of the drawer, above the session's agent-runs chart"
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption>The label row sits above the chart of that session&apos;s agent runs.</figcaption>
+            </figure>
           </li>
 
           <li className="ac-guide-step" id="live">
@@ -139,6 +181,17 @@ export default function HowToUse() {
               <li>Open the tab, then start Claude Code in the same repository. The tree draws itself.</li>
               <li>The line on the right says whether yesterday&apos;s kept work is still kept today.</li>
             </ul>
+            <figure className="ac-guide-fig">
+              <img
+                src="/guide/live.webp"
+                width={1440}
+                height={900}
+                alt="The Live tab before a session starts: waiting for a session, and yesterday's kept-work line"
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption>Before a session starts. Once one runs, the agents draw here in real time.</figcaption>
+            </figure>
           </li>
 
           <li className="ac-guide-step" id="fix">
@@ -157,6 +210,17 @@ export default function HowToUse() {
                 <code>actuals fix</code> and <code>actuals undo &lt;fix-id&gt;</code>.
               </li>
             </ul>
+            <figure className="ac-guide-fig">
+              <img
+                src="/guide/fixes.webp"
+                width={1440}
+                height={900}
+                alt="The fixes section: F1 caps the agent tree with the diff shown, F2 is opt-in, F3 is not available yet"
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption>F1 applies by default. F2 is opt-in. Nothing is written without a confirm.</figcaption>
+            </figure>
           </li>
 
           <li className="ac-guide-step" id="share">
@@ -174,6 +238,17 @@ export default function HowToUse() {
                 Pick light or dark ink for the photo it will sit on.
               </li>
             </ul>
+            <figure className="ac-guide-fig">
+              <img
+                src="/guide/share.webp"
+                width={1440}
+                height={900}
+                alt="The sticker panel: the sticker preview with three figures and the curve, and the copy, save and post controls"
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption>The sticker and its controls. The foot of the report says what left the machine: nothing.</figcaption>
+            </figure>
           </li>
         </ol>
 

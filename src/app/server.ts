@@ -25,7 +25,8 @@ import { LabelState, type Run } from "../schema/ledger.js";
 import { ReportSchema, type Report } from "../schema/socket.js";
 import { sessionDetail } from "./session.js";
 import { DEFAULT_HOST, MAX_HOSTED_BODY_BYTES, MAX_STICKER_BYTES, describeUpload, postLink, readLicence, redactedForUpload, uploadHosted } from "../hosted/index.js";
-import { hudSnapshot } from "../watch/hud-server.js";
+import { homedir } from "node:os";
+import { hudSnapshot, type HudSnapshot } from "../watch/hud-server.js";
 import { isWatching, liveDir } from "../watch/index.js";
 
 export interface AppOptions {
@@ -209,13 +210,23 @@ export async function startApp(opts: AppOptions): Promise<App> {
     return { fix, changes };
   }
 
+  /** In a redacted app nothing on the wire names the machine: paths lose the repository prefix and the home directory. */
+  const home = homedir();
+  const redactPath = (text: string): string => baseScope.redact ? text.split(baseScope.repoPath + "/").join("").split(baseScope.repoPath).join("(redacted)").split(home).join("~") : text;
+  /** In a redacted app the live rows carry how many files a run wrote, never which. */
+  const redactLive = (snap: HudSnapshot): HudSnapshot => {
+    if (!baseScope.redact) return snap;
+    snap.repo = "(redacted)";
+    for (const r of snap.tree?.runs ?? []) { (r as { files_hidden?: number }).files_hidden = r.files.length; r.files = []; }
+    return snap;
+  };
   async function route(req: IncomingMessage, url: URL, port: number, body: unknown): Promise<{ status: number; type: "html" | "json"; payload: string | object }> {
     const m = req.method ?? "GET";
     const seg = url.pathname.split("/").filter(Boolean);
     if (m === "GET" && url.pathname === "/") return { status: 200, type: "html", payload: page(port) };
     if (m === "GET" && url.pathname === "/api/report") return { status: 200, type: "json", payload: current.report };
     if (m === "GET" && url.pathname === "/api/sessions") return { status: 200, type: "json", payload: { sessions: catalog, projects: projectRows(), project: currentProject, scope: currentScope, run_id: current.runId } };
-    if (m === "GET" && url.pathname === "/api/live") { lastPing = Date.now(); return { status: 200, type: "json", payload: await hudSnapshot(stateDir, baseScope.repoPath, isWatching(), claudeRoot) }; }
+    if (m === "GET" && url.pathname === "/api/live") { lastPing = Date.now(); return { status: 200, type: "json", payload: redactLive(await hudSnapshot(stateDir, baseScope.repoPath, isWatching(), claudeRoot)) }; }
     if (m === "GET" && seg[0] === "api" && seg[1] === "session" && seg[2]) {
       const id = decodeURIComponent(seg[2]);
       if (seg[3] === "instrument") {
@@ -274,7 +285,7 @@ export async function startApp(opts: AppOptions): Promise<App> {
       const id = parsed.data.id;
       if (seg[2] === "plan") {
         const { changes } = fixOrThrow(id);
-        return { status: 200, type: "json", payload: { id, files: changes.map((c) => ({ file: c.file, new_file: c.before === null })), diff: changes.map(diffOf).join("\n\n"), applied: appliedFixIds(stateDir).includes(id) } };
+        return { status: 200, type: "json", payload: { id, files: changes.map((c) => ({ file: redactPath(c.file), new_file: c.before === null })), diff: redactPath(changes.map(diffOf).join("\n\n")), applied: appliedFixIds(stateDir).includes(id) } };
       }
       if (seg[2] === "apply") {
         const { changes } = fixOrThrow(id);
@@ -352,7 +363,7 @@ export async function startApp(opts: AppOptions): Promise<App> {
       if (closed || sending) return;
       sending = true;
       try {
-        const snap = await hudSnapshot(stateDir, baseScope.repoPath, isWatching(), claudeRoot);
+        const snap = redactLive(await hudSnapshot(stateDir, baseScope.repoPath, isWatching(), claudeRoot));
         if (!closed) { lastPing = Date.now(); res.write(`data: ${JSON.stringify(snap)}\n\n`); }
       } catch { /* a transient read; the next change or keepalive retries */ }
       finally { sending = false; }

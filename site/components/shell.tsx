@@ -37,7 +37,7 @@ export function Shell({
     <div className="ac-shell">
       <NavScroll />
       <header className="ac-nav">
-        <Link className="ac-word" href="/">
+        <Link className="ac-word" href="/" prefetch={false}>
           ACTUALS
         </Link>
         <nav className="ac-words">
@@ -49,7 +49,7 @@ export function Shell({
       <main className="ac-main">{children}</main>
 
       <footer className="ac-foot">
-        <Link className="ac-word" href="/">
+        <Link className="ac-word" href="/" prefetch={false}>
           ACTUALS
         </Link>
         <p className="ac-foot-line">the receipt for your coding agents</p>

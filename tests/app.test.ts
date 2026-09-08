@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { startApp, type App } from "../src/app/server.js";
+import { eventFrom, record } from "../src/watch/index.js";
 import { latestRunId } from "../src/ledger/store.js";
 import { runPipeline } from "../src/pipeline.js";
 import { ReportSchema } from "../src/schema/socket.js";
@@ -246,5 +247,35 @@ describe("project switcher", () => {
     const back = (await (await get(app, "/api/sessions")).json()) as Cat;
     expect(back.sessions).toHaveLength(2);
     expect(back.project).toBe("-repo");
+  });
+});
+
+describe("a redacted app names nothing on the machine", () => {
+  it("the fix plan's diff and file names lose the repository path; live rows carry a count of files, never their names", async () => {
+    const fx = twoSessionFixture();
+    const stateDir = path.join(fx.root, "state");
+    await runPipeline({ ...scopeFor(fx), redact: true }, { claudeRoot: fx.claudeRoot, stateDir, now: new Date("2026-09-02T00:00:00Z") });
+    // a live run that wrote one file, as the hooks would record it
+    record(eventFrom("SubagentStart", { session_id: fx.sessionId, cwd: fx.repo, agent_id: "a-live-1", agent_type: "general-purpose" })!, { stateDir });
+    record(eventFrom("PostToolUse", { session_id: fx.sessionId, cwd: fx.repo, tool_name: "Write", tool_use_id: "tu-1", agent_id: "a-live-1", tool_input: { file_path: path.join(fx.repo, "secret-notes.md") } })!, { stateDir });
+    const app = await startApp({ scope: { ...scopeFor(fx), redact: true }, stateDir, claudeRoot: fx.claudeRoot, idleExitMs: null });
+    apps.push(app);
+    const pj = (await (await post(app, "/api/fix/plan", { id: "f1-cap-tree" })).json()) as { diff: string; files: Array<{ file: string }> };
+    expect(pj.diff).toContain("CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS");
+    expect(pj.diff).not.toContain(fx.repo);
+    expect(pj.diff).toContain("+++ .claude/settings.json");
+    expect(pj.files[0]!.file).toBe(".claude/settings.json");
+    const live = await (await get(app, "/api/live")).text();
+    expect(live).not.toContain("secret-notes.md");
+    const snap = JSON.parse(live) as { repo: string; tree: { runs: Array<{ files: string[]; files_hidden?: number }> } | null };
+    expect(snap.repo).toBe("(redacted)");
+    const runs = snap.tree?.runs ?? [];
+    expect(runs.length).toBeGreaterThan(0);
+    expect(runs.some((r) => r.files_hidden === 1)).toBe(true);
+    expect(runs.every((r) => r.files.length === 0)).toBe(true);
+    // the plain app still carries the path, so the switch is doing the work
+    const open = await startApp({ scope: scopeFor(fx), stateDir, claudeRoot: fx.claudeRoot, idleExitMs: null });
+    apps.push(open);
+    expect(await (await get(open, "/api/live")).text()).toContain("secret-notes.md");
   });
 });
