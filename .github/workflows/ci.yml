@@ -1,0 +1,114 @@
+name: ci
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  # branches: a new push cancels the run in progress; main: every push is verified in full
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+# Jobs 1 to 4 need no secret, so forks and the public repository run them too.
+# Actions are pinned to release tags (the repository does not require SHA pinning).
+jobs:
+  check:
+    name: check (lint, types, tests, gates, parity, build, tarball, audit, secrets)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v7.0.0
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run types
+      - run: npm run test
+      - name: Eval gates (a red enforced gate blocks main)
+        run: npm run gates -- --check
+      - name: Socket parity (the checked-in fixture validates against the schema)
+        run: npx tsx eval/socket-parity.ts
+      - run: npm run build
+      - name: Tarball allowlist (six files; the sourcemap stays inside src and the bundled deps)
+        run: node scripts/tarball-check.mjs
+      - name: Runtime dependency audit (the CLI has none; this proves it stays that way)
+        run: npm audit --omit=dev --audit-level=high
+      - name: Secret scan over the push range
+        uses: gitleaks/gitleaks-action@v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  copy-gate:
+    name: copy-gate (every string a stranger reads)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - run: node scripts/copy-gate.mjs
+
+  changes:
+    name: what changed
+    runs-on: ubuntu-latest
+    outputs:
+      site: ${{ steps.filter.outputs.site }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: { fetch-depth: 0 }
+      - id: filter
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base="${{ github.event.pull_request.base.sha }}"
+          else
+            base="${{ github.event.before }}"
+          fi
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$base" 2>/dev/null; then
+            echo "site=true" >> "$GITHUB_OUTPUT"; echo "no usable base commit; the site jobs run"; exit 0
+          fi
+          if git diff --name-only "$base" "${{ github.sha }}" | grep -qE '^(site/|src/render/|\.github/workflows/|scripts/(bundle-budget|fixture-gate|frames))'; then
+            echo "site=true" >> "$GITHUB_OUTPUT"; echo "site paths changed"
+          else
+            echo "site=false" >> "$GITHUB_OUTPUT"; echo "no site paths changed; the site jobs are skipped"
+          fi
+
+  site:
+    name: site (types, lint, build, redaction gate, bundle budget, audit)
+    needs: changes
+    if: needs.changes.outputs.site == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with: { node-version: 20, cache: npm, cache-dependency-path: "**/package-lock.json" }
+      - name: Root dependencies (the site compiles ../src, which resolves zod from here)
+        run: npm ci
+      - run: npm ci
+        working-directory: site
+      - run: npm run types
+        working-directory: site
+      - run: npm run lint
+        working-directory: site
+      - name: Redaction gate over the demo fixtures
+        run: node_modules/.bin/tsx scripts/fixture-gate.ts
+      - name: next build (no keys; every surface degrades to a sentence)
+        run: npm run build
+        working-directory: site
+        env: { NEXT_TELEMETRY_DISABLED: "1" }
+      - name: Bundle budget (landing client JS under 260 KB gzipped)
+        run: node scripts/bundle-budget.mjs site/.next /page 260
+      - name: Runtime dependency audit for the site
+        run: npm audit --omit=dev --audit-level=high
+        working-directory: site
+
+  frames:
+    needs: changes
+    if: needs.changes.outputs.site == 'true'
+    uses: ./.github/workflows/frames.yml
+    with:
+      retention-days: 14

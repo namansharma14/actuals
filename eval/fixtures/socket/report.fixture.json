@@ -1,0 +1,600 @@
+{
+  "schema_version": "actuals.report/2.0",
+  "repo_id": "f1a2b3c4d5e6a7b8",
+  "repo_path": "/Users/demo/projects/actuals",
+  "generated_at": "2026-09-03T12:00:00Z",
+  "run_id": "run_demo_20260903_0001",
+  "window": {
+    "since": "2026-08-08",
+    "until": "2026-09-01"
+  },
+  "tools": [
+    "claude_code"
+  ],
+  "tool_versions": {
+    "claude_code": [
+      "2.1.241"
+    ]
+  },
+  "rates_version": "2026-09-03",
+  "provenance_note": "Every number in this report is a rounded, illustrative mock built to exercise the renderer. It is not measured from a real run. See the marks legend below for what each label means when the numbers are real.",
+  "headline": {
+    "cost_usd": {
+      "value": 2540,
+      "mark": "estimated"
+    },
+    "commits": {
+      "value": 149,
+      "mark": "measured"
+    },
+    "cost_per_commit": {
+      "value": 17.05,
+      "mark": "estimated"
+    },
+    "files_alive": {
+      "alive": 182,
+      "written": 207,
+      "mark": "measured"
+    },
+    "runs_no_fate": {
+      "count": 80,
+      "cost_usd": 700,
+      "mark": "measured"
+    }
+  },
+  "sessions": [
+    {
+      "id": "a1f3c208-kickoff",
+      "tool": "claude_code",
+      "date": "2026-08-08",
+      "title": "Scaffold the project and the first build",
+      "hours": 3.5,
+      "cost_usd": 120,
+      "cost_main_usd": 90,
+      "cost_agents_usd": 30,
+      "commits": 14,
+      "files_written": 20,
+      "files_alive": 20,
+      "files_tracked": 16,
+      "agents": 7,
+      "peak_concurrency": 3,
+      "max_depth": 1,
+      "died": 0,
+      "outcome": {
+        "state": "kept",
+        "note": "16 files tracked on the main branch.",
+        "source": "git",
+        "mark": "measured"
+      },
+      "claimed": null
+    },
+    {
+      "id": "c92e77bd-buildsprint",
+      "tool": "claude_code",
+      "date": "2026-08-09",
+      "title": "Build the dashboard and its API routes",
+      "hours": 9.2,
+      "cost_usd": 760,
+      "cost_main_usd": 430,
+      "cost_agents_usd": 330,
+      "commits": 39,
+      "files_written": 52,
+      "files_alive": 49,
+      "files_tracked": 46,
+      "agents": 29,
+      "peak_concurrency": 8,
+      "max_depth": 2,
+      "died": 0,
+      "outcome": {
+        "state": "kept",
+        "note": "46 files tracked on the main branch.",
+        "source": "git",
+        "mark": "measured"
+      },
+      "claimed": {
+        "outcome": "shipped",
+        "goal": "wire the dashboard to the API end to end",
+        "source": "insights_facet",
+        "mark": "measured"
+      }
+    },
+    {
+      "id": "4410f0ae-shellrebuild",
+      "tool": "claude_code",
+      "date": "2026-08-10",
+      "title": "Refactor the app shell and add tests",
+      "hours": 6.0,
+      "cost_usd": 420,
+      "cost_main_usd": 260,
+      "cost_agents_usd": 160,
+      "commits": 23,
+      "files_written": 13,
+      "files_alive": 11,
+      "files_tracked": 10,
+      "agents": 16,
+      "peak_concurrency": 6,
+      "max_depth": 3,
+      "died": 0,
+      "outcome": {
+        "state": "kept",
+        "note": "10 files tracked on the main branch.",
+        "source": "git",
+        "mark": "measured"
+      },
+      "claimed": null
+    },
+    {
+      "id": "9c02b6d1-pipeline",
+      "tool": "claude_code",
+      "date": "2026-08-24",
+      "title": "Batch import: fifty jobs over the API",
+      "hours": 14.0,
+      "cost_usd": 430,
+      "cost_main_usd": 280,
+      "cost_agents_usd": 150,
+      "commits": 44,
+      "files_written": 22,
+      "files_alive": 19,
+      "files_tracked": 19,
+      "agents": 9,
+      "peak_concurrency": 5,
+      "max_depth": 1,
+      "died": 0,
+      "outcome": {
+        "state": "retired",
+        "note": "Pipeline decommissioned on 31 August. Handoff notes kept.",
+        "source": "founder",
+        "mark": "founder-labelled"
+      },
+      "claimed": null
+    },
+    {
+      "id": "6b8f1a55-pivotcrash",
+      "tool": "claude_code",
+      "date": "2026-08-31",
+      "title": "Large refactor that ran the machine out of memory",
+      "hours": 4.5,
+      "cost_usd": 260,
+      "cost_main_usd": 150,
+      "cost_agents_usd": 110,
+      "commits": 0,
+      "files_written": 9,
+      "files_alive": 1,
+      "files_tracked": 0,
+      "agents": 31,
+      "peak_concurrency": 20,
+      "max_depth": 3,
+      "died": 12,
+      "outcome": {
+        "state": "dead",
+        "note": "Twelve runs died mid tree. All four finalists were rejected.",
+        "source": "founder",
+        "mark": "founder-labelled"
+      },
+      "claimed": null
+    },
+    {
+      "id": "e3d0c471-recovery",
+      "tool": "claude_code",
+      "date": "2026-08-31",
+      "title": "Recover the refactor and re-run the suite",
+      "hours": 5.0,
+      "cost_usd": 170,
+      "cost_main_usd": 170,
+      "cost_agents_usd": 0,
+      "commits": 0,
+      "files_written": 10,
+      "files_alive": 10,
+      "files_tracked": 0,
+      "agents": 14,
+      "peak_concurrency": 4,
+      "max_depth": 1,
+      "died": 0,
+      "outcome": {
+        "state": "open",
+        "note": "Ten files alive, none tracked yet. Decision pending.",
+        "source": "founder",
+        "mark": "founder-labelled"
+      },
+      "claimed": null
+    },
+    {
+      "id": "08fa66cc-deck",
+      "tool": "claude_code",
+      "date": "2026-08-25",
+      "title": "Migrate the auth middleware",
+      "hours": 2.0,
+      "cost_usd": 120,
+      "cost_main_usd": 120,
+      "cost_agents_usd": 0,
+      "commits": 5,
+      "files_written": 11,
+      "files_alive": 7,
+      "files_tracked": 7,
+      "agents": 3,
+      "peak_concurrency": 2,
+      "max_depth": 1,
+      "died": 0,
+      "outcome": {
+        "state": "kept",
+        "note": "Deck artifact published and live.",
+        "source": "measured",
+        "mark": "measured"
+      },
+      "claimed": null
+    },
+    {
+      "id": "bb914e02-bucket",
+      "tool": "claude_code",
+      "date": "multiple",
+      "title": "Fourteen small sessions: edits and checks",
+      "hours": null,
+      "cost_usd": 260,
+      "cost_main_usd": 260,
+      "cost_agents_usd": 0,
+      "commits": 24,
+      "files_written": 70,
+      "files_alive": 65,
+      "files_tracked": 65,
+      "agents": 5,
+      "peak_concurrency": 1,
+      "max_depth": 1,
+      "died": 0,
+      "outcome": {
+        "state": "kept",
+        "note": "Mostly small edits and checks.",
+        "source": "git",
+        "mark": "measured"
+      },
+      "claimed": null
+    }
+  ],
+  "burn": {
+    "tree": {
+      "peaks": [
+        {
+          "date": "2026-08-09",
+          "session_id": "c92e77bd-buildsprint",
+          "peak": 8,
+          "max_depth": 2
+        },
+        {
+          "date": "2026-08-10",
+          "session_id": "4410f0ae-shellrebuild",
+          "peak": 6,
+          "max_depth": 3
+        },
+        {
+          "date": "2026-08-24",
+          "session_id": "9c02b6d1-pipeline",
+          "peak": 5,
+          "max_depth": 1
+        },
+        {
+          "date": "2026-08-31",
+          "session_id": "6b8f1a55-pivotcrash",
+          "peak": 20,
+          "max_depth": 3
+        }
+      ],
+      "depth_histogram": {
+        "1": 15,
+        "2": 8,
+        "3": 8
+      },
+      "spawned_by_agents": 23,
+      "died": {
+        "count": 12,
+        "cost_usd": 109
+      },
+      "mark": "measured",
+      "timeline": {
+        "session_id": "c92e77bd-buildsprint",
+        "date": "2026-08-09",
+        "title": "Illustrative: the tallest tree",
+        "start": "2026-08-31T13:16:00Z",
+        "end": "2026-08-31T16:06:00Z",
+        "peak": 8,
+        "peak_at": "2026-08-31T14:51:00Z",
+        "died": 3,
+        "spawned_by_agents": 8,
+        "runs": [
+          {
+            "id": "run-00",
+            "start": "2026-08-31T13:16:00Z",
+            "end": "2026-08-31T14:46:00Z",
+            "depth": 1,
+            "fate": "landed_tracked"
+          },
+          {
+            "id": "run-01",
+            "start": "2026-08-31T13:21:00Z",
+            "end": "2026-08-31T14:01:00Z",
+            "depth": 1,
+            "fate": "finished_unlanded"
+          },
+          {
+            "id": "run-02",
+            "start": "2026-08-31T13:26:00Z",
+            "end": "2026-08-31T14:06:00Z",
+            "depth": 1,
+            "fate": "finished_unlanded"
+          },
+          {
+            "id": "run-03",
+            "start": "2026-08-31T13:31:00Z",
+            "end": "2026-08-31T14:11:00Z",
+            "depth": 1,
+            "fate": "landed_tracked"
+          },
+          {
+            "id": "run-04",
+            "start": "2026-08-31T13:36:00Z",
+            "end": "2026-08-31T15:06:00Z",
+            "depth": 1,
+            "fate": "finished_unlanded"
+          },
+          {
+            "id": "run-05",
+            "start": "2026-08-31T13:41:00Z",
+            "end": "2026-08-31T14:21:00Z",
+            "depth": 1,
+            "fate": "finished_unlanded"
+          },
+          {
+            "id": "run-06",
+            "start": "2026-08-31T13:46:00Z",
+            "end": "2026-08-31T14:26:00Z",
+            "depth": 1,
+            "fate": "landed_tracked"
+          },
+          {
+            "id": "run-07",
+            "start": "2026-08-31T13:51:00Z",
+            "end": "2026-08-31T14:31:00Z",
+            "depth": 1,
+            "fate": "finished_unlanded"
+          },
+          {
+            "id": "run-08",
+            "start": "2026-08-31T13:56:00Z",
+            "end": "2026-08-31T15:26:00Z",
+            "depth": 1,
+            "fate": "finished_unlanded"
+          },
+          {
+            "id": "run-09",
+            "start": "2026-08-31T14:01:00Z",
+            "end": "2026-08-31T14:41:00Z",
+            "depth": 1,
+            "fate": "landed_tracked"
+          },
+          {
+            "id": "run-10",
+            "start": "2026-08-31T14:06:00Z",
+            "end": "2026-08-31T14:46:00Z",
+            "depth": 1,
+            "fate": "finished_unlanded"
+          },
+          {
+            "id": "run-11",
+            "start": "2026-08-31T14:11:00Z",
+            "end": "2026-08-31T14:51:00Z",
+            "depth": 1,
+            "fate": "finished_unlanded"
+          },
+          {
+            "id": "run-12",
+            "start": "2026-08-31T14:16:00Z",
+            "end": "2026-08-31T15:46:00Z",
+            "depth": 2,
+            "fate": "landed_tracked"
+          },
+          {
+            "id": "run-13",
+            "start": "2026-08-31T14:21:00Z",
+            "end": "2026-08-31T15:01:00Z",
+            "depth": 2,
+            "fate": "finished_unlanded"
+          },
+          {
+            "id": "run-14",
+            "start": "2026-08-31T14:26:00Z",
+            "end": "2026-08-31T15:06:00Z",
+            "depth": 2,
+            "fate": "finished_unlanded"
+          },
+          {
+            "id": "run-15",
+            "start": "2026-08-31T14:31:00Z",
+            "end": "2026-08-31T15:11:00Z",
+            "depth": 2,
+            "fate": "landed_tracked"
+          },
+          {
+            "id": "run-16",
+            "start": "2026-08-31T14:36:00Z",
+            "end": "2026-08-31T16:06:00Z",
+            "depth": 2,
+            "fate": "finished_unlanded"
+          },
+          {
+            "id": "run-17",
+            "start": "2026-08-31T14:41:00Z",
+            "end": "2026-08-31T15:21:00Z",
+            "depth": 3,
+            "fate": "died"
+          },
+          {
+            "id": "run-18",
+            "start": "2026-08-31T14:46:00Z",
+            "end": "2026-08-31T15:26:00Z",
+            "depth": 3,
+            "fate": "died"
+          },
+          {
+            "id": "run-19",
+            "start": "2026-08-31T14:51:00Z",
+            "end": "2026-08-31T15:31:00Z",
+            "depth": 3,
+            "fate": "died"
+          }
+        ]
+      }
+    },
+    "fate": {
+      "by_state": {
+        "still_running": 0,
+        "died": 12,
+        "founder_labelled": 2,
+        "landed_tracked": 15,
+        "landed_untracked": 5,
+        "finished_unlanded": 0,
+        "unknown": 80
+      },
+      "unlandable_count": 80,
+      "unlandable_cost_usd": 700,
+      "mark": "measured"
+    },
+    "rereads": {
+      "reads": 213,
+      "rereads": 86,
+      "top": [
+        {
+          "path": "QUESTIONS.md",
+          "n": 19
+        },
+        {
+          "path": "src/pipeline.ts",
+          "n": 10
+        }
+      ],
+      "mark": "measured",
+      "note": "Counted across every session in this window. Claude Code's own /usage view shows cache misses inside a single session; this is the cross-session view of the same habit."
+    }
+  },
+  "models": [
+    {
+      "model": "claude-opus-5",
+      "runs": 83,
+      "cost_usd": 988,
+      "per_run_usd": 11.9,
+      "finished": 72,
+      "landed": 11,
+      "kept_per_usd": null,
+      "rate_mark": "estimated"
+    },
+    {
+      "model": "claude-fable-5",
+      "runs": 23,
+      "cost_usd": 146,
+      "per_run_usd": 6.35,
+      "finished": 23,
+      "landed": 7,
+      "kept_per_usd": null,
+      "rate_mark": "assumed"
+    },
+    {
+      "model": "claude-sonnet-5",
+      "runs": 8,
+      "cost_usd": 46,
+      "per_run_usd": 5.75,
+      "finished": 7,
+      "landed": 1,
+      "kept_per_usd": null,
+      "rate_mark": "estimated"
+    }
+  ],
+  "fixes": [
+    {
+      "id": "fix_cap_tree",
+      "kind": "cap_tree",
+      "title": "Cap the agent tree at what your machine survived",
+      "why": "Claude Code ships two limits for this. The defaults are 20 concurrent and depth 3, which is exactly the tree that went down on 31 August. Your own history shows 8 concurrent at depth 2 finishing cleanly.",
+      "target_file": ".claude/settings.json",
+      "snippet": "{\n  \"env\": {\n    \"CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS\": \"8\",\n    \"CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH\": \"2\"\n  }\n}",
+      "would_have_blocked": "16 of the 31 spawns on 31 August, about $120.",
+      "available": true
+    },
+    {
+      "id": "fix_reports_land",
+      "kind": "reports_on_disk",
+      "title": "Every agent report lands on disk",
+      "why": "One line in the project instructions plus a Stop hook. An agent's final report is written to reports/ before it returns, so kept becomes measurable: did anything cite it, copy it, or commit it.",
+      "target_file": "CLAUDE.md",
+      "snippet": "- Subagents write their final report to reports/ before returning. No file, no report.",
+      "would_have_blocked": null,
+      "available": true
+    },
+    {
+      "id": "fix_paired_test",
+      "kind": "paired_model_test",
+      "title": "Run a paired model test on the next five sweeps",
+      "why": "Same brief, two models, both reports on disk, a blind pick decides. Five pairs is enough to route routine work by evidence instead of habit.",
+      "target_file": "actuals.toml",
+      "snippet": "[experiments.sweeps]\nmodels = [\"opus\", \"sonnet\"]\npairs = 5\njudge = \"founder-blind\"",
+      "would_have_blocked": null,
+      "available": true
+    },
+    {
+      "id": "fix_git_ai",
+      "kind": "suggest_git_ai",
+      "title": "Install Git AI for line-level survival",
+      "why": "Files alive is file-level only today. Git AI notes would add line-level survival per session, which sharpens every number above.",
+      "target_file": "",
+      "snippet": "",
+      "would_have_blocked": null,
+      "available": false
+    }
+  ],
+  "share": {
+    "period": "8 Aug to 1 Sep 2026",
+    "agent_runs": 114,
+    "commits": 149,
+    "cost_per_commit": 17.05,
+    "files_alive_pct": 88,
+    "biggest_tree": 20,
+    "runs_no_fate": 80
+  },
+  "method": [
+    "Reads Claude Code and Codex transcripts under the user's home directory, locally.",
+    "Joins transcript claims to git log and the file system for what survived.",
+    "Prices tokens at list rates from a bundled rates file. Unknown models fall back to a family rate and are marked assumed.",
+    "Derives fixes from the numbers above. Nothing is applied without a confirm.",
+    "Never spawns an agent and never calls a model to produce this report."
+  ],
+  "limitations": [
+    "compaction",
+    "resumed sessions",
+    "sidechains",
+    "worktrees",
+    "cwd changes mid-session",
+    "multiple repositories in one session",
+    "plan-versus-API billing",
+    "unknown models",
+    "clock skew",
+    "transcript cleanup by the tool",
+    "Codex archived sessions",
+    "Codex Cloud (no local files)",
+    "transcript formats are internal to each tool and can change on any release",
+    "the report cannot see whether a report changed a decision; that is the label."
+  ],
+  "marks_legend": {
+    "measured": "Read from the local transcripts and this repository's git history, today.",
+    "estimated": "Token counts priced at list rates from the bundled rates file.",
+    "founder-labelled": "An outcome only the user can state, taken from what they said, not inferred.",
+    "illustrative": "A mock of a surface that does not exist yet.",
+    "assumed": "A rate or parameter not on a public price page."
+  },
+  "fate_states": [
+    "still_running",
+    "died",
+    "founder_labelled",
+    "landed_tracked",
+    "landed_untracked",
+    "finished_unlanded",
+    "unknown"
+  ],
+  "tokens_spent_making_this": 0,
+  "left_machine": "nothing"
+}

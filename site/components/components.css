@@ -1,0 +1,230 @@
+/* The site's own system, taken from the landing. Every token is prefixed `--ac-` so it can
+   never collide with the report's `:root` tokens, which the head embeds for the report
+   itself and which flip to a light palette for a viewer who asks for one. These components
+   are dark, always, wherever they are used. */
+
+:root {
+  --ac-ground: #05070a;
+  --ac-ink: #f2ede3;
+  --ac-body: #c6c4be;
+  --ac-muted: #8e949d;
+  --ac-faint: #7e8791;
+  --ac-rule: rgba(242, 237, 227, 0.1);
+  --ac-hair: rgba(242, 237, 227, 0.055);
+  --ac-accent: #6fb4ff;
+  --ac-wash: rgba(111, 180, 255, 0.16);
+  --ac-mark: #7e97a8;
+  --ac-warn: #ff6a3d;
+
+  --ac-1: 4px;
+  --ac-2: 8px;
+  --ac-3: 12px;
+  --ac-4: 20px;
+  --ac-5: 32px;
+  --ac-6: 52px;
+  --ac-7: 84px;
+  --ac-8: 136px;
+
+  --ac-gutter: clamp(20px, 5vw, 76px);
+  --ac-measure: min(1180px, 100%);
+  --ac-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ------------------------------------------------------------------ wordmark */
+
+.ac-word {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.22em;
+  color: var(--ac-ink);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------- mark */
+
+.ac-mark {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ac-mark);
+  white-space: nowrap;
+  vertical-align: 0.12em;
+}
+.ac-mark + .ac-mark,
+:not(.ac-fig-m) > .ac-mark {
+  margin-inline-start: 0.5em;
+}
+
+/* -------------------------------------------------------------------- figure */
+
+.ac-fig {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ac-2);
+  min-width: 0;
+}
+.ac-fig-n {
+  font-family: var(--mono);
+  font-weight: 200;
+  font-size: clamp(38px, 4.1vw, 76px);
+  line-height: 0.94;
+  letter-spacing: -0.045em;
+  color: var(--ac-ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ac-fig-m {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ac-2);
+  flex-wrap: wrap;
+}
+.ac-fig-s {
+  font-size: 13.5px;
+  color: var(--ac-muted);
+}
+.ac-fig-l {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ac-body);
+  max-width: 30ch;
+}
+.ac-fig[data-rail="1"] .ac-fig-n {
+  font-size: clamp(24px, 2.1vw, 34px);
+}
+.ac-fig[data-rail="1"] .ac-fig-l {
+  font-size: 13px;
+  color: var(--ac-muted);
+}
+
+/* ------------------------------------------------------------------ the pill */
+
+.ac-pill {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid rgba(111, 180, 255, var(--pill-border, 0.42));
+  background: rgba(111, 180, 255, var(--pill-wash, 0.16));
+  border-radius: var(--pill-round, 999px);
+  overflow: hidden;
+  max-width: 100%;
+}
+.ac-pill code {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  font-family: var(--mono);
+  font-size: clamp(16px, 1.5vw, 22px);
+  letter-spacing: -0.02em;
+  color: var(--ac-ink);
+  padding: 0.66em 1.05em;
+  white-space: nowrap;
+}
+.ac-pill-p {
+  color: var(--ac-accent);
+}
+.ac-pill button {
+  appearance: none;
+  border: 0;
+  border-inline-start: 1px solid rgba(111, 180, 255, calc(0.1 + 0.24 * var(--pill-border, 0.42) / 0.42));
+  background: transparent;
+  color: var(--ac-accent);
+  font-family: var(--sans);
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+  padding-inline: 1.15em;
+  min-height: 44px;
+  cursor: pointer;
+  transition: background 200ms var(--ac-ease);
+}
+.ac-pill button:hover,
+.ac-pill button:focus-visible {
+  background: rgba(111, 180, 255, 0.14);
+}
+.ac-pill[data-size="foot"] code {
+  font-size: 16px;
+  padding: 0.5em 0.9em;
+}
+.ac-pill[data-size="inline"] code {
+  font-size: 14px;
+  padding: 0.4em 0.8em;
+}
+.ac-pill[data-size="inline"] button {
+  min-height: 34px;
+  padding-inline: 0.9em;
+}
+.ac-pill-label {
+  display: block;
+  margin-block-start: var(--ac-3);
+  font-size: 13.5px;
+  color: var(--ac-muted);
+}
+
+/* ------------------------------------------------------------------- a frame */
+
+.ac-frame {
+  border: 1px solid var(--ac-rule);
+  background: rgba(10, 12, 15, 0.86);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+.ac-frame-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--ac-3);
+  padding: 10px var(--ac-3);
+  border-block-end: 1px solid var(--ac-hair);
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--ac-muted);
+  flex: none;
+}
+.ac-frame-dots {
+  display: inline-flex;
+  gap: 5px;
+}
+.ac-frame-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ac-hair);
+  border: 1px solid var(--ac-rule);
+}
+.ac-frame-host {
+  color: var(--ac-muted);
+}
+.ac-frame-note {
+  margin-inline-start: auto;
+  color: var(--ac-muted);
+}
+.ac-frame-body {
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+  flex: 1 1 auto;
+}
+.ac-frame-body > img,
+.ac-frame-body > iframe {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 0;
+}
+
+@media (max-width: 620px) {
+  .ac-frame-note {
+    display: none;
+  }
+}
+
+.ac-pill-wrap {
+  display: inline-block;
+  max-width: 100%;
+}

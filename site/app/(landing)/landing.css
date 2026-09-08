@@ -1,0 +1,954 @@
+/* The landing's own system. Two grounds that cut on hard edges, one accent, three type
+   roles: the serif for the first line of a head, the sans for the rest and for prose, the
+   mono only for machine text (the command, the terminal, the meter, the receipt, the models,
+   the report inside its windows). Every size is set here; site.css styles nothing bare. */
+
+.lp {
+  --g: #0b0e12;
+  --g2: #11151b;
+  --paper: #f3efe6;
+  --ink: #f2ede3;
+  --ink-d: #14171c;
+  --body: #c9d3e0;
+  --body-d: #3c424b;
+  --mute: #8e9aab;
+  --mute-d: #4e5462;
+  --acc: #6fb4ff;
+  --acc-d: #1f63c6;
+  --warn: #ff6a3d;
+  --serif: var(--ac-serif), Georgia, "Times New Roman", serif;
+  --gut: clamp(20px, 5vw, 72px);
+  --winw: min(50%, 860px);
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --nav-h: 76px;
+
+  background: var(--g);
+  color: var(--body);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+.lp :where(code) {
+  font-family: var(--mono);
+  font-size: 0.86em;
+}
+.lp a {
+  color: inherit;
+}
+
+/* --------------------------------------------------------------------------- nav */
+
+.lp-nav {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  height: var(--nav-h);
+  padding-inline: var(--gut);
+  pointer-events: none;
+  color: #ffffff;
+  border-block-end: 1px solid transparent;
+  transition: background 300ms var(--ease), border-color 300ms var(--ease);
+}
+/* transparent over the hero only; from the first scroll a glass ground, so the three
+   words never print through whatever passes under them */
+.lp-nav.is-glass {
+  background: rgba(11, 14, 18, 0.66);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  border-block-end-color: rgba(242, 237, 227, 0.1);
+}
+.lp-nav a {
+  pointer-events: auto;
+  text-decoration: none;
+  color: #ffffff;
+}
+.lp-nav-word {
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.22em;
+}
+.lp-nav nav {
+  display: flex;
+  gap: clamp(18px, 2.5vw, 36px);
+  font-size: 15px;
+}
+.lp-nav nav a {
+  display: inline-block;
+  padding-block: 12px;
+  opacity: 0.86;
+}
+.lp-nav nav a:hover {
+  opacity: 1;
+}
+
+/* -------------------------------------------------------------------------- type */
+
+.lp-h1,
+.lp-h2,
+.lp-h3 {
+  margin: 0;
+  font-weight: 400;
+  line-height: 0.94;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.lp-paper .lp-h2,
+.lp-paper .lp-h3 {
+  color: var(--ink-d);
+}
+.lp-line {
+  display: block;
+  overflow: hidden;
+  padding-block-end: 0.08em;
+  margin-block-end: -0.08em;
+}
+.lp-line-in {
+  display: block;
+  will-change: transform;
+}
+.lp-line {
+  font-weight: 500;
+  letter-spacing: -0.045em;
+}
+/* at most one word per heading in the serif, never a whole line, never in the chrome */
+.lp-line em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  font-size: 1.08em;
+}
+.lp-line-warn {
+  color: var(--warn);
+}
+.lp-h1 {
+  font-size: clamp(48px, 5.5vw, 82px);
+}
+.lp-h2 {
+  font-size: clamp(42px, 5.3vw, 78px);
+}
+.lp-h3 {
+  font-size: clamp(30px, 3.2vw, 46px);
+}
+
+.lp-lede {
+  margin: 0;
+  max-width: 34em;
+  font-size: clamp(17px, 1.4vw, 20px);
+  line-height: 1.45;
+  color: var(--body);
+}
+.lp-body {
+  margin: 0;
+  max-width: 32em;
+  font-size: clamp(16px, 1.3vw, 19px);
+  line-height: 1.5;
+}
+.lp-paper .lp-body {
+  color: var(--body-d);
+}
+.lp-note {
+  margin: 0;
+  max-width: 36em;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--mute);
+}
+.lp-paper .lp-note {
+  color: var(--mute-d);
+}
+.lp-fine {
+  margin: 0;
+  font-size: 14px;
+  color: var(--mute);
+}
+.lp-fine a {
+  color: var(--acc);
+  text-decoration: none;
+  border-block-end: 1px solid rgba(111, 180, 255, 0.4);
+}
+.lp-pill {
+  display: inline-block;
+}
+.lp .ac-pill code {
+  font-size: clamp(18px, 1.7vw, 24px);
+  padding: 0.62em 1.1em 0.62em 1.25em;
+}
+.lp .ac-pill {
+  box-shadow: none;
+}
+
+/* ------------------------------------------------------------------ the windows */
+
+.lp-win {
+  border: 1px solid rgba(242, 237, 227, 0.16);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0b0e12;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+/* one shadow on the page, on the hero's window only */
+.lp-carry-win .lp-win {
+  box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.8);
+}
+.lp-paper .lp-win {
+  border-color: rgba(20, 23, 28, 0.22);
+}
+.lp-win-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  padding: 0 14px;
+  border-block-end: 1px solid rgba(242, 237, 227, 0.1);
+  background: #11151b;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--mute);
+  flex: none;
+}
+.lp-win-dots {
+  display: inline-flex;
+  gap: 6px;
+}
+.lp-win-dots i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #3a414b;
+}
+.lp-win-note {
+  margin-inline-start: auto;
+  color: var(--mute);
+}
+.lp-win-body {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  background: #0b0e12;
+}
+.lp-win-body iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #0b0e12;
+}
+.lp-win-cover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 16px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-decoration: none;
+  font: inherit;
+}
+.lp-win-cover span {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--acc);
+  padding: 8px 12px;
+  border: 1px solid rgba(111, 180, 255, 0.4);
+  border-radius: 999px;
+  background: rgba(11, 14, 18, 0.7);
+  opacity: 0;
+  transition: opacity 180ms var(--ease);
+}
+.lp-win:hover .lp-win-cover span,
+.lp-win-cover:focus-visible span {
+  opacity: 1;
+}
+@media (hover: none) {
+  .lp-win-cover span {
+    opacity: 1;
+  }
+}
+.lp-win-cover.is-open {
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* ----------------------------------------------- hero, run, the month, what was kept */
+
+.lp-carry {
+  position: relative;
+}
+.lp-carry-win {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: var(--gut);
+  width: var(--winw);
+  z-index: 5;
+}
+.lp-sticky {
+  position: sticky;
+  top: calc(var(--nav-h) + 24px);
+  padding-block: 16px 24px;
+}
+.lp-carry-win .lp-win {
+  height: min(66svh, 640px);
+}
+
+.lp-hero,
+.lp-run,
+.lp-month,
+.lp-kept {
+  padding-inline: var(--gut) calc(var(--winw) + var(--gut) + 40px);
+}
+.lp-hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-block: calc(var(--nav-h) + 40px) 72px;
+  background: var(--g);
+}
+.lp-hero-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 26px;
+}
+.lp-hero-foot {
+  margin: 56px 0 0;
+  max-width: 34em;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--mute);
+}
+
+.lp-run {
+  padding-block: 40px 120px;
+  background: var(--g);
+}
+.lp-run-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.lp-run .lp-body {
+  color: var(--body);
+}
+.lp-term {
+  border: 1px solid rgba(242, 237, 227, 0.12);
+  border-radius: 8px;
+  background: #07090c;
+  padding: 18px 20px;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ink);
+  max-width: 44em;
+}
+.lp-term-cmd {
+  margin: 0 0 6px;
+}
+.lp-term-p {
+  color: var(--acc);
+}
+.lp-term-out {
+  margin: 0;
+  font: inherit;
+  color: var(--body);
+  white-space: pre;
+  overflow-x: clip;
+}
+.lp-term {
+  max-width: 64em;
+}
+
+.lp-paper {
+  background: var(--paper);
+  color: var(--body-d);
+}
+.lp-month {
+  padding-block: 120px 100px;
+}
+.lp-kept {
+  padding-block: 40px 150px;
+}
+.lp-chapter-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.lp-figs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 26px 32px;
+  margin-block-start: 6px;
+  max-width: 560px;
+}
+.lp-fig {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.lp-num {
+  font-family: var(--mono);
+  font-weight: 200;
+  font-size: clamp(36px, 3.2vw, 46px);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--ink-d);
+  font-variant-numeric: tabular-nums;
+}
+.lp-fig-l {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--mute-d);
+}
+.lp-proof {
+  margin: 8px 0 -14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mute-d);
+}
+.lp-money-proof {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.lp-money-proof .lp-proof {
+  margin: 0;
+}
+.lp-model-nofate {
+  color: var(--body-d);
+}
+
+/* ------------------------------------------------------------------- the peak */
+
+.lp-peak {
+  position: relative;
+  height: 270svh;
+  background: var(--g);
+  color: var(--body);
+}
+.lp-peak-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 10px;
+  padding: calc(var(--nav-h) + 8px) var(--gut) 28px;
+  box-sizing: border-box;
+}
+.lp-peak-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 40px;
+}
+.lp-peak-p {
+  margin: 0;
+  max-width: 26em;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--body);
+}
+.lp-peak-read {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.lp-peak-n {
+  font-family: var(--mono);
+  font-weight: 200;
+  font-size: clamp(40px, 4vw, 60px);
+  line-height: 1;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  min-width: 1.3em;
+}
+.lp-peak-l {
+  font-size: 14px;
+  color: var(--mute);
+}
+.lp-peak-tree {
+  position: relative;
+  min-height: 0;
+}
+.lp-tree {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.lp-tree-cap {
+  stroke: rgba(242, 237, 227, 0.16);
+  stroke-dasharray: 2 6;
+  vector-effect: non-scaling-stroke;
+}
+.lp-tree-base,
+.lp-tree-tick {
+  stroke: rgba(242, 237, 227, 0.26);
+  vector-effect: non-scaling-stroke;
+}
+.lp-tree-time {
+  font-family: var(--mono);
+  font-size: 11px;
+  fill: var(--mute);
+}
+.lp-tree-line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.lp-tree-peakline {
+  stroke: var(--warn);
+  stroke-dasharray: 2 5;
+  opacity: 0.9;
+  vector-effect: non-scaling-stroke;
+}
+.lp-tree-peakdot {
+  fill: var(--acc);
+}
+.lp-tree-bar {
+  fill: #e8e4da;
+  opacity: 0.85;
+  cursor: crosshair;
+  /* a transparent stroke widens the hit area without changing the drawing */
+  pointer-events: all;
+  stroke: transparent;
+  stroke-width: 12px;
+  vector-effect: non-scaling-stroke;
+  paint-order: stroke;
+}
+.lp-tree-bar[data-fate="unknown"] {
+  fill: #6b7280;
+}
+.lp-tree-bar[data-fate="died"] {
+  fill: var(--warn);
+  opacity: 1;
+}
+.lp-tree-bar:hover {
+  fill: var(--acc);
+}
+.lp-tip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  pointer-events: none;
+  padding: 10px 12px;
+  border: 1px solid rgba(242, 237, 227, 0.16);
+  border-radius: 6px;
+  background: rgba(17, 21, 27, 0.96);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink);
+  white-space: nowrap;
+  box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.8);
+}
+.lp-tip i {
+  display: block;
+  font-style: normal;
+  color: var(--mute);
+}
+.lp-tip [data-fate="died"] {
+  color: var(--warn);
+}
+.lp-peak-foot {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--mute);
+}
+.lp-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.lp-key i {
+  width: 14px;
+  height: 5px;
+  background: #e8e4da;
+}
+.lp-key i[data-fate="unknown"] {
+  background: #6b7280;
+}
+.lp-key i[data-fate="died"] {
+  background: var(--warn);
+}
+.lp-peak-foot-t {
+  margin-inline-start: 8px;
+}
+
+/* ------------------------------------------------------------ the money, the agents */
+
+.lp-money,
+.lp-agents {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 56px;
+  align-items: start;
+  padding: 110px var(--gut) 130px;
+}
+.lp-agents {
+  align-items: center;
+  border-block-start: 1px solid rgba(20, 23, 28, 0.12);
+}
+.lp-agents .lp-h3 {
+  margin-block-start: 16px;
+}
+.lp-agents .lp-h2 {
+  font-size: clamp(38px, 4.4vw, 64px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-peak {
+    height: auto;
+  }
+  .lp-peak-stage {
+    position: static;
+    height: auto;
+  }
+}
+.lp-agents-win .lp-win {
+  height: min(78svh, 760px);
+}
+.lp-models {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  border-block-start: 1px solid rgba(20, 23, 28, 0.14);
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--ink-d);
+}
+.lp-model {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 2.6fr);
+  gap: 16px;
+  padding: 18px 0;
+  border-block-end: 1px solid rgba(20, 23, 28, 0.14);
+  font-variant-numeric: tabular-nums;
+}
+.lp-model span:nth-child(2),
+.lp-model span:nth-child(3) {
+  text-align: right;
+}
+.lp-model span:nth-child(4) {
+  text-align: right;
+}
+.lp-model em {
+  font-style: normal;
+  color: var(--mute-d);
+  font-family: var(--sans);
+  font-size: 13px;
+}
+.lp-model-head {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mute-d);
+  padding-block: 12px;
+}
+
+/* --------------------------------------------------------------------- the meter */
+
+.lp-watch {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 56px;
+  align-items: center;
+  padding: 90px var(--gut);
+  background: var(--g2);
+}
+.lp-watch-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.lp-meter {
+  border: 1px solid rgba(242, 237, 227, 0.12);
+  border-radius: 8px;
+  background: #07090c;
+  padding: 18px 20px 14px;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.lp-meter p {
+  margin: 0;
+}
+.lp-meter-dim {
+  color: var(--mute);
+}
+.lp-meter-you {
+  color: var(--ink);
+}
+.lp-meter-you span {
+  color: var(--acc);
+}
+.lp-meter-status {
+  margin-block-start: 10px !important;
+  padding-block-start: 10px;
+  border-block-start: 1px solid rgba(242, 237, 227, 0.1);
+  color: var(--ink);
+}
+.lp-meter-status .is-typing::after {
+  content: "";
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  margin-inline-start: 2px;
+  vertical-align: -0.15em;
+  background: var(--ink);
+}
+@keyframes lp-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------------------- the receipt */
+
+.lp-rc,
+.lp-receipt {
+  background: var(--paper);
+  color: var(--ink-d);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.9;
+  padding: 26px 26px 40px;
+  box-shadow: 0 50px 90px -30px rgba(0, 0, 0, 0.9);
+  clip-path: polygon(
+    0 0, 100% 0, 100% 97%, 96% 100%, 92% 97%, 88% 100%, 84% 97%, 80% 100%, 76% 97%, 72% 100%, 68% 97%, 64% 100%,
+    60% 97%, 56% 100%, 52% 97%, 48% 100%, 44% 97%, 40% 100%, 36% 97%, 32% 100%, 28% 97%, 24% 100%, 20% 97%, 16% 100%,
+    12% 97%, 8% 100%, 4% 97%, 0 100%
+  );
+}
+.lp-rc-head {
+  display: flex;
+  flex-direction: column;
+}
+.lp-rc-brand {
+  letter-spacing: 0.2em;
+  font-size: 13px;
+}
+.lp-rc-sub {
+  font-size: 13px;
+  color: var(--mute-d);
+}
+.lp-rc-rule {
+  border-block-start: 1px dashed rgba(20, 23, 28, 0.3);
+  margin-block: 14px 10px;
+}
+.lp-rc-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.lp-rc-line span:first-child {
+  color: var(--body-d);
+}
+.lp-rc-warn span:last-child {
+  color: #c2410c;
+}
+.lp-rc-foot {
+  margin-block-start: 8px;
+  font-size: 13px;
+  color: var(--mute-d);
+}
+
+/* the fixed one prints as you go; it only exists with script, on a wide screen */
+/* the receipt appears once, at the end (the close); there is no tab at the page's edge */
+/* ----------------------------------------------------------------------- close */
+
+.lp-close {
+  position: relative;
+  z-index: 5;
+  height: 100svh;
+  min-height: 720px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 100px var(--gut) 32px;
+  box-sizing: border-box;
+}
+.lp-close-centre {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+/* the settled receipt is set a shade tighter so it clears the nav and holds the pill in one screen */
+.lp-close .lp-rc-final {
+  line-height: 1.62;
+  padding-block: 20px 30px;
+}
+.lp-foot-word {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--ink);
+}
+.lp-foot {
+  grid-column: 1 / -1;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-block-start: 120px;
+  font-size: 13px;
+  color: var(--mute);
+}
+.lp-foot nav {
+  display: flex;
+  gap: 24px;
+}
+.lp-foot nav a {
+  text-decoration: none;
+  color: var(--mute);
+  padding-block: 12px;
+}
+.lp-foot nav a:hover {
+  color: var(--ink);
+}
+
+/* -------------------------------------------------------------- narrow screens */
+
+@media (max-width: 1099px) {
+  .lp-carry {
+    display: flex;
+    flex-direction: column;
+  }
+  .lp-carry-win {
+    position: static;
+    width: auto;
+    order: 2;
+    padding: 0 var(--gut) 56px;
+    background: var(--g);
+  }
+  .lp-sticky {
+    position: static;
+    padding: 0;
+  }
+  .lp-carry-win .lp-win {
+    height: min(60svh, 520px);
+  }
+  .lp-hero,
+  .lp-run,
+  .lp-month,
+  .lp-kept {
+    padding-inline: var(--gut);
+  }
+  .lp-hero {
+    order: 1;
+    min-height: 0;
+    padding-block: calc(var(--nav-h) + 24px) 40px;
+  }
+  .lp-hero-foot {
+    position: static;
+    margin-block-start: 32px;
+  }
+  .lp-run {
+    order: 3;
+  }
+  .lp-month {
+    order: 4;
+  }
+  .lp-kept {
+    order: 5;
+  }
+  .lp-money,
+  .lp-agents,
+  .lp-watch,
+  .lp-close {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+  .lp-agents-win .lp-win {
+    height: min(70svh, 600px);
+  }
+  .lp-close-rc {
+    justify-content: flex-start;
+  }
+  .lp-peak {
+    height: auto;
+  }
+  .lp-peak-stage {
+    position: static;
+    height: auto;
+    gap: 20px;
+  }
+  .lp-peak-tree {
+    height: 420px;
+  }
+  .lp-peak-head {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+@media (max-width: 640px) {
+  .lp {
+    font-size: 16px;
+  }
+  .lp-nav nav a:not(:last-child) {
+    display: none;
+  }
+  .lp-h1 {
+    font-size: clamp(44px, 12.5vw, 56px);
+  }
+  .lp-h2 {
+    font-size: clamp(36px, 10.5vw, 46px);
+  }
+  .lp-figs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lp-model {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1.6fr);
+    gap: 8px;
+    font-size: 12px;
+  }
+  .lp-term,
+  .lp-meter {
+    font-size: 12px;
+  }
+  .lp .ac-pill code {
+    font-size: 17px;
+  }
+  .lp-month,
+  .lp-money,
+  .lp-agents {
+    padding-block: 72px 84px;
+  }
+  .lp-kept {
+    padding-block: 24px 84px;
+  }
+  .lp-close {
+    padding-block: 84px 160px;
+  }
+  .lp-peak-tree {
+    height: 360px;
+  }
+}

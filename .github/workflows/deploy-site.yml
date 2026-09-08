@@ -1,0 +1,46 @@
+name: deploy-site
+on:
+  workflow_dispatch:
+  push:
+    tags: ["site-v*"]
+
+permissions:
+  contents: read
+
+# Preview on manual dispatch. Production only from a site-v* tag, and only inside the
+# GitHub environment "production", which the maintainer configures to require review.
+# Secrets the maintainer adds: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID.
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ startsWith(github.ref, 'refs/tags/site-v') && 'production' || 'preview' }}
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      TARGET: ${{ startsWith(github.ref, 'refs/tags/site-v') && 'production' || 'preview' }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with: { node-version: 20, cache: npm, cache-dependency-path: "**/package-lock.json" }
+      - name: Secrets present
+        run: |
+          for v in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do [ -n "${!v}" ] || { echo "$v is not set"; exit 1; }; done
+      - run: npm ci
+      - run: npm ci
+        working-directory: site
+      - run: npm i -g vercel@latest
+      - name: Pull the environment
+        run: vercel pull --yes --environment="$TARGET" --token="$VERCEL_TOKEN"
+        working-directory: site
+      - name: Build
+        run: |
+          if [ "$TARGET" = "production" ]; then vercel build --prod --token="$VERCEL_TOKEN"; else vercel build --token="$VERCEL_TOKEN"; fi
+        working-directory: site
+      - name: Deploy the prebuilt output
+        id: deploy
+        run: |
+          if [ "$TARGET" = "production" ]; then url="$(vercel deploy --prebuilt --prod --yes --token="$VERCEL_TOKEN")"; else url="$(vercel deploy --prebuilt --yes --token="$VERCEL_TOKEN")"; fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "### deployed ($TARGET): $url" >> "$GITHUB_STEP_SUMMARY"
+        working-directory: site

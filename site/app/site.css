@@ -1,0 +1,1107 @@
+/* The chrome for every page but the landing, on the landing's own system. Tokens and the
+   five shared components live in components/components.css; this sheet is the shell, the
+   page ramp, the three type roles, the three buttons, the one input, and the few blocks
+   each page needs. Dark only, everywhere.
+
+   It deliberately styles almost nothing bare. The landing sets its own type on the same
+   elements, and a sheet that reached into `p`, `h1` or `section` would have to be fought
+   off page by page. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* The report's tokens flip to a light palette for a viewer who asks for one, and they are
+   embedded in this document's head. The root stays on the dark ground so the landing and
+   the report windows sit on it; the shell paints the paper. */
+html:root {
+  background: #0b0e12;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: #0b0e12;
+  color: var(--ac-body);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.58;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ------------------------------------------------------------------------ the shell */
+
+/* Every page but the landing sits on the landing's bright paper (canvas decision 1). The
+   tokens are re-set here so every rule below, and every shared component inside the shell,
+   reads the paper palette; the landing outside the shell keeps the dark one. */
+.ac-shell {
+  --ac-ground: #f3efe6;
+  --ac-ink: #14171c;
+  --ac-body: #3c424b;
+  --ac-muted: #5b6270;
+  --ac-faint: #7a8290;
+  --ac-rule: rgba(20, 23, 28, 0.14);
+  --ac-hair: rgba(20, 23, 28, 0.08);
+  --ac-accent: #1f63c6;
+  --ac-wash: rgba(31, 99, 198, 0.1);
+  --ac-mark: #5b6270;
+  --ac-warn: #c2410c;
+
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  background: var(--ac-ground);
+  color: var(--ac-body);
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ac-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ac-4);
+  height: 76px;
+  padding: 0 var(--ac-gutter);
+  background: var(--ac-ground);
+  border-block-end: 1px solid transparent;
+  transition: border-color 250ms var(--ac-ease);
+}
+html[data-ac-scrolled] .ac-nav {
+  border-block-end-color: var(--ac-hair);
+}
+
+.ac-words {
+  display: flex;
+  align-items: center;
+  gap: clamp(18px, 2.5vw, 36px);
+}
+.ac-words a {
+  display: inline-block;
+  font-size: 15px;
+  color: var(--ac-body);
+  text-decoration: none;
+  border-block-end: 1px solid transparent;
+  padding-block: 12px;
+  transition: color 200ms var(--ac-ease), border-color 200ms var(--ac-ease);
+}
+.ac-words a:hover,
+.ac-words a:focus-visible {
+  color: var(--ac-ink);
+  border-block-end-color: var(--ac-accent);
+}
+
+/* The handle, with sign out under it on hover. No avatar, no dropdown, no badge. */
+.ac-nav-me {
+  position: relative;
+  display: inline-block;
+}
+.ac-nav-out {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-end: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms var(--ac-ease);
+}
+.ac-nav-me:hover .ac-nav-out,
+.ac-nav-me:focus-within .ac-nav-out {
+  opacity: 1;
+  pointer-events: auto;
+}
+.ac-signout-btn {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 6px 0;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--ac-faint);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ac-signout-btn:hover {
+  color: var(--ac-ink);
+}
+
+.ac-main {
+  flex: 1 0 auto;
+  width: 100%;
+}
+
+.ac-foot {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(16px, 2.4vw, 40px);
+  flex-wrap: wrap;
+  padding: var(--ac-6) var(--ac-gutter) var(--ac-7);
+  border-block-start: 1px solid var(--ac-hair);
+  margin-block-start: var(--ac-7);
+}
+.ac-foot-line {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ac-muted);
+}
+.ac-words-foot {
+  margin-inline-start: auto;
+}
+.ac-foot .ac-pill-wrap {
+  flex: none;
+}
+
+/* -------------------------------------------------------------------- the page ramp */
+
+.ac-page {
+  width: var(--ac-measure);
+  margin-inline: auto;
+  padding: var(--ac-7) var(--ac-gutter) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ac-7);
+}
+/* The report is a whole document and needs room to be one: the two pages that frame it
+   widen, so the report's own five-column head is not cut off inside the frame. */
+.ac-page-wide {
+  width: min(1460px, 100%);
+}
+.ac-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ac-4);
+  min-width: 0;
+}
+.ac-block > * {
+  margin: 0;
+}
+
+/* ------------------------------------------------------------------ the type roles */
+
+.ac-display {
+  margin: 0;
+  font-weight: 400;
+  line-height: 1.02;
+  color: var(--ac-ink);
+  text-wrap: balance;
+  max-width: 22ch;
+}
+.ac-display-s {
+  display: block;
+  font-family: var(--ac-serif), "Instrument Serif", Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: clamp(40px, 6.4vw, 92px);
+  letter-spacing: -0.005em;
+}
+.ac-display-n {
+  display: block;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: clamp(30px, 4.4vw, 62px);
+  letter-spacing: -0.045em;
+}
+
+.ac-lede {
+  font-size: clamp(16px, 1.5vw, 20px);
+  line-height: 1.5;
+  color: var(--ac-body);
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+.ac-note {
+  font-size: 13.5px;
+  line-height: 1.62;
+  color: var(--ac-muted);
+  max-width: 58ch;
+  text-wrap: pretty;
+}
+.ac-note-wide {
+  max-width: 80ch;
+}
+.ac-note-done {
+  color: var(--ac-body);
+}
+.ac-err,
+.ac-warn-line {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ac-warn);
+  max-width: 58ch;
+}
+.ac-closing {
+  font-size: 13px;
+  color: var(--ac-faint);
+}
+.ac-body-link {
+  color: var(--ac-body);
+  text-decoration: none;
+  border-block-end: 1px solid var(--ac-rule);
+}
+.ac-body-link:hover {
+  border-block-end-color: var(--ac-accent);
+  color: var(--ac-ink);
+}
+.ac-page code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  color: var(--ac-ink);
+}
+
+/* --------------------------------------------------------------- the three buttons */
+
+.ac-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 1px solid var(--ac-ink);
+  background: transparent;
+  color: var(--ac-ink);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 200ms var(--ac-ease), color 200ms var(--ac-ease), border-color 200ms var(--ac-ease);
+}
+.ac-btn:hover,
+.ac-btn:focus-visible {
+  background: var(--ac-ink);
+  color: var(--ac-ground);
+}
+.ac-btn:disabled,
+.ac-btn[aria-disabled="true"] {
+  border-color: var(--ac-rule);
+  color: var(--ac-faint);
+  background: transparent;
+  cursor: default;
+}
+
+.ac-quiet {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-block-end: 1px solid var(--ac-rule);
+  color: var(--ac-body);
+  font-family: var(--sans);
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 200ms var(--ac-ease), border-color 200ms var(--ac-ease);
+}
+.ac-quiet:hover,
+.ac-quiet:focus-visible {
+  color: var(--ac-ink);
+  border-block-end-color: var(--ac-accent);
+}
+.ac-quiet-faint {
+  color: var(--ac-faint);
+}
+.ac-unavailable {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 14px;
+  color: var(--ac-faint);
+}
+
+/* ------------------------------------------------------------------- the one input */
+
+.ac-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ac-2);
+  max-width: 460px;
+}
+.ac-field label {
+  font-size: 13px;
+  color: var(--ac-faint);
+}
+.ac-field-row {
+  display: flex;
+  align-items: end;
+  gap: var(--ac-3);
+  flex-wrap: wrap;
+}
+.ac-field input[type="email"] {
+  flex: 1 1 200px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 0;
+  background: transparent;
+  border: 0;
+  border-block-end: 1px solid var(--ac-rule);
+  color: var(--ac-ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  border-radius: 0;
+  transition: border-color 200ms var(--ac-ease);
+}
+.ac-field input[type="email"]::placeholder {
+  color: var(--ac-faint);
+}
+.ac-field input[type="email"]:focus {
+  outline: none;
+  border-block-end-color: var(--ac-accent);
+}
+.ac-trap {
+  display: none;
+}
+
+/* ------------------------------------------------------------------------ /pricing */
+
+.ac-question {
+  font-size: clamp(20px, 2.2vw, 28px);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--ac-ink);
+  max-width: 30ch;
+}
+.ac-band {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr 1fr;
+  gap: 0;
+  border-block-start: 1px solid var(--ac-rule);
+}
+.ac-answer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ac-3);
+  padding: var(--ac-5) var(--ac-5) var(--ac-5) 0;
+  border-inline-end: 1px solid var(--ac-hair);
+  min-width: 0;
+}
+.ac-answer:last-child {
+  border-inline-end: 0;
+  padding-inline-end: 0;
+}
+.ac-answer + .ac-answer {
+  padding-inline-start: var(--ac-5);
+}
+.ac-answer-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ac-3);
+}
+.ac-answer-name {
+  margin: 0;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0;
+  color: var(--ac-muted);
+}
+/* The chrome keeps the mono for numerals, marks, the pill and the wordmark; this is a word. */
+.ac-answer-mine {
+  font-size: 13px;
+  color: var(--ac-muted);
+}
+.ac-answer-price {
+  font-family: var(--mono);
+  font-weight: 200;
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  color: var(--ac-ink);
+  font-variant-numeric: tabular-nums;
+}
+.ac-answer[data-lead="1"] .ac-answer-price {
+  font-size: clamp(44px, 5vw, 72px);
+}
+.ac-answer[data-lead="1"] .ac-answer-lines p {
+  font-size: 15px;
+  color: var(--ac-body);
+}
+.ac-answer-lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ac-2);
+}
+.ac-answer-lines p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ac-muted);
+  max-width: 34ch;
+}
+.ac-answer-do {
+  margin-block-start: auto;
+  padding-block-start: var(--ac-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ac-2);
+  align-items: flex-start;
+}
+
+.ac-later {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ac-5);
+  border-block-start: 1px solid var(--ac-hair);
+  padding-block-start: var(--ac-5);
+}
+.ac-later-row {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr);
+  gap: var(--ac-4);
+  align-items: baseline;
+}
+.ac-later-name {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ac-1);
+}
+.ac-later-name b {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--ac-muted);
+}
+.ac-later-name span {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 200;
+  color: var(--ac-muted);
+}
+.ac-later-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ac-3);
+}
+
+.ac-sends {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ac-5);
+}
+.ac-sends p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ac-muted);
+}
+
+.ac-close {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ac-4);
+  align-items: flex-start;
+  border-block-start: 1px solid var(--ac-hair);
+  padding-block-start: var(--ac-6);
+}
+
+/* ------------------------------------------------------------------------ /sign-in */
+
+.ac-one-column {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ac-5);
+  padding: var(--ac-7) var(--ac-gutter);
+  text-align: center;
+}
+.ac-one-column .ac-lede {
+  max-width: 46ch;
+}
+
+/* ------------------------------------------------------------------------ /account */
+
+.ac-key {
+  gap: var(--ac-3);
+}
+.ac-key-value {
+  font-family: var(--mono);
+  font-weight: 200;
+  font-size: clamp(22px, 3vw, 40px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--ac-ink);
+  overflow-wrap: anywhere;
+}
+.ac-key-masked {
+  color: var(--ac-muted);
+  font-size: clamp(18px, 2vw, 26px);
+}
+.ac-key-paste {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--ac-rule);
+  max-width: 100%;
+  align-self: flex-start;
+}
+.ac-key-paste code {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--ac-ink);
+  padding: 12px 16px;
+  overflow-wrap: anywhere;
+  display: flex;
+  align-items: center;
+}
+.ac-key-copy {
+  appearance: none;
+  border: 0;
+  border-inline-start: 1px solid var(--ac-rule);
+  background: transparent;
+  color: var(--ac-accent);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding-inline: 1.15em;
+  min-height: 44px;
+  cursor: pointer;
+  transition: background 200ms var(--ac-ease);
+}
+.ac-key-copy:hover,
+.ac-key-copy:focus-visible {
+  background: rgba(111, 180, 255, 0.14);
+}
+.ac-key-do {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ac-3);
+  align-items: flex-start;
+}
+.ac-key-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ac-4);
+  flex-wrap: wrap;
+}
+
+.ac-standing {
+  font-size: clamp(16px, 1.5vw, 20px);
+  line-height: 1.5;
+  color: var(--ac-body);
+  max-width: 62ch;
+}
+.ac-standing-plan {
+  color: var(--ac-ink);
+}
+.ac-upgrade {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.ac-upgrade .ac-answer {
+  padding-block: var(--ac-4);
+}
+.ac-upgrade .ac-answer-price,
+.ac-upgrade .ac-answer[data-lead="1"] .ac-answer-price {
+  font-size: 26px;
+}
+.ac-upgrade .ac-answer-lines p,
+.ac-upgrade .ac-answer[data-lead="1"] .ac-answer-lines p {
+  font-size: 13.5px;
+  color: var(--ac-muted);
+}
+
+.ac-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--ac-5);
+}
+.ac-gallery figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ac-3);
+}
+.ac-gallery figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ac-1);
+}
+.ac-gallery-day {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ac-muted);
+}
+.ac-gallery-fig {
+  font-size: 13.5px;
+  color: var(--ac-body);
+}
+.ac-sticker {
+  display: block;
+  width: var(--ac-sticker-w, 100%);
+  max-width: 100%;
+  color: inherit;
+  text-decoration: none;
+  border: 1px solid var(--ac-hair);
+  background: rgba(10, 12, 15, 0.6);
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+/* A stored card may be square or wide, depending on the run that made it. It is never
+   stretched: the gallery keeps its squares and the card sits inside one. */
+.ac-sticker img,
+.ac-sticker-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+/* Beside the numbers it is shown at its own shape, not boxed into a square. */
+.ac-share-card .ac-sticker {
+  aspect-ratio: auto;
+}
+.ac-share-card .ac-sticker img {
+  height: auto;
+}
+.ac-sticker-none {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 13px;
+  color: var(--ac-faint);
+  text-align: center;
+  padding: var(--ac-4);
+}
+
+.ac-empty {
+  display: flex;
+  align-items: center;
+  gap: var(--ac-6);
+  flex-wrap: wrap;
+}
+.ac-empty-square {
+  width: 300px;
+  height: 300px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--ac-3);
+  border: 1px dashed var(--ac-rule);
+}
+.ac-empty .ac-lede {
+  flex: 1 1 320px;
+  font-size: 15px;
+}
+
+.ac-week {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  gap: var(--ac-6);
+  align-items: center;
+}
+.ac-week-n {
+  font-family: var(--mono);
+  font-weight: 200;
+  font-size: clamp(38px, 4.1vw, 64px);
+  line-height: 0.94;
+  letter-spacing: -0.045em;
+  color: var(--ac-ink);
+  font-variant-numeric: tabular-nums;
+}
+.ac-week-m {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ac-2);
+  flex-wrap: wrap;
+  margin-block-start: var(--ac-2);
+  font-size: 13.5px;
+  color: var(--ac-muted);
+}
+.ac-week-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.ac-week-path {
+  stroke: var(--ac-muted);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.ac-week-dot {
+  fill: var(--ac-accent);
+}
+
+/* ------------------------------------------------------------------- /r/<id>, /demo */
+
+.ac-share-when {
+  display: flex;
+  gap: var(--ac-4);
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ac-muted);
+}
+.ac-share-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--ac-6);
+  align-items: start;
+}
+.ac-share-figs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ac-5) var(--ac-6);
+}
+.ac-share-figs .ac-fig-n {
+  font-size: clamp(34px, 3.4vw, 58px);
+}
+.ac-share-card {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ac-report-frame {
+  height: min(78svh, 900px);
+}
+.ac-report-frame .ac-frame-body > iframe {
+  width: 100%;
+  height: 100%;
+  background: #0a0c0f;
+}
+.ac-frame-open {
+  display: none;
+  margin: 0;
+  padding: var(--ac-5);
+}
+.ac-frame-open a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ac-body);
+  font-size: 15px;
+  text-decoration: none;
+  border-block-end: 1px solid var(--ac-rule);
+}
+.ac-frame-open a:hover {
+  color: var(--ac-ink);
+  border-block-end-color: var(--ac-accent);
+}
+
+.ac-ask {
+  align-items: flex-start;
+  border-block-start: 1px solid var(--ac-hair);
+  padding-block-start: var(--ac-6);
+}
+
+/* -------------------------------------------------------------------------- states */
+
+.ac-plain {
+  padding-block: var(--ac-6) var(--ac-7);
+}
+/* A state is not a headline: the display face steps down so one sentence keeps two lines. */
+.ac-plain .ac-display {
+  max-width: 28ch;
+}
+.ac-plain .ac-display-n {
+  font-size: clamp(28px, 3.2vw, 46px);
+}
+.ac-plain-do {
+  display: flex;
+  gap: var(--ac-4);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------- phone */
+
+@media (max-width: 900px) {
+  .ac-band,
+  .ac-upgrade {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ac-answer,
+  .ac-answer + .ac-answer,
+  .ac-answer:last-child {
+    padding: var(--ac-5) 0;
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--ac-hair);
+  }
+  .ac-band .ac-answer:last-child,
+  .ac-upgrade .ac-answer:last-child {
+    border-block-end: 0;
+  }
+  .ac-sends {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ac-4);
+  }
+  .ac-share-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ac-5);
+  }
+  .ac-share-card {
+    justify-content: flex-start;
+  }
+  .ac-week {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ac-4);
+  }
+}
+
+@media (max-width: 720px) {
+  .ac-page {
+    gap: var(--ac-6);
+    padding-block-start: var(--ac-6);
+  }
+  /* The two words move to the footer. The child combinator matters: the handle is an
+     anchor inside its own wrapper and must not be counted here. */
+  .ac-nav .ac-words > a:nth-child(1),
+  .ac-nav .ac-words > a:nth-child(2) {
+    display: none;
+  }
+  .ac-foot {
+    flex-direction: column;
+    gap: var(--ac-3);
+    margin-block-start: var(--ac-6);
+  }
+  .ac-words-foot {
+    margin-inline-start: 0;
+  }
+  .ac-display-s {
+    font-size: 40px;
+  }
+  .ac-display-n {
+    font-size: 30px;
+  }
+  .ac-share-figs {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ac-4);
+  }
+  .ac-share-figs .ac-fig-n {
+    font-size: 34px;
+  }
+  .ac-later-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ac-2);
+  }
+  .ac-empty {
+    gap: var(--ac-4);
+  }
+  .ac-empty-square {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    max-width: 320px;
+  }
+  /* No nested scroll on a phone: the frame offers the document instead of holding it. */
+  .ac-report-frame {
+    height: auto;
+  }
+  .ac-report-frame .ac-frame-body > iframe {
+    display: none;
+  }
+  .ac-frame-open {
+    display: block;
+  }
+  .ac-gallery {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--ac-4);
+  }
+  /* Everything a thumb has to hit is at least 44px tall. The wordmark and the nav words
+     grow here rather than in the shared components, which the landing also uses. */
+  .ac-nav .ac-word,
+  .ac-foot .ac-word,
+  .ac-nav .ac-words a,
+  .ac-foot .ac-words a,
+  .ac-nav .ac-signout-btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-block: 0;
+  }
+  .ac-nav {
+    align-items: center;
+    padding-block: var(--ac-2);
+  }
+  /* On a phone the report is a link rather than a frame, so the ask comes up to meet the
+     numbers and the command stays within reach of the first screen. */
+  .ac-page-wide > .ac-share-head {
+    order: 1;
+  }
+  .ac-page-wide > .ac-ask {
+    order: 2;
+    border-block-start: 0;
+    padding-block-start: 0;
+  }
+  .ac-page-wide > .ac-report-block {
+    order: 3;
+  }
+  .ac-page-wide > .ac-closing {
+    order: 4;
+  }
+  .ac-share-card .ac-sticker {
+    width: 150px;
+  }
+  .ac-share-figs {
+    gap: var(--ac-3);
+  }
+  .ac-share-figs .ac-fig-l {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .ac-share-figs .ac-fig-n {
+    font-size: 30px;
+  }
+  .ac-share-head {
+    gap: var(--ac-3);
+  }
+  .ac-share-body {
+    gap: var(--ac-4);
+  }
+}
+
+@media print {
+  .ac-nav,
+  .ac-foot,
+  .ac-pill-wrap {
+    display: none !important;
+  }
+  .ac-page {
+    padding: 24px 0;
+    gap: 40px;
+  }
+}
+
+/* ------------------------------------------------------------ the pill on the paper */
+
+.ac-shell .ac-pill {
+  background: #ffffff;
+  border-color: rgba(20, 23, 28, 0.22);
+  box-shadow: none;
+}
+.ac-shell .ac-pill code {
+  color: var(--ac-ink);
+}
+.ac-shell .ac-pill button {
+  border-inline-start-color: rgba(20, 23, 28, 0.14);
+}
+.ac-shell .ac-pill button:hover,
+.ac-shell .ac-pill button:focus-visible {
+  background: var(--ac-wash);
+}
+
+/* ------------------------------------------------------- one screen, one job (focus) */
+
+.ac-focus {
+  min-height: 100svh;
+}
+.ac-focus-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 76px;
+  padding: 0 var(--ac-gutter);
+}
+.ac-focus-handle {
+  font-size: 15px;
+  color: var(--ac-body);
+}
+.ac-focus-main {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  padding: 40px var(--ac-gutter) 120px;
+}
+.ac-focus-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* --------------------------------------------- one-job screens: centred display, the code */
+
+.ac-display-c {
+  text-align: center;
+  max-width: 22ch;
+  margin-inline: auto;
+}
+.ac-center {
+  text-align: center;
+  margin-inline: auto;
+}
+.ac-lede.ac-center {
+  max-width: 34em;
+}
+.ac-note.ac-center {
+  max-width: 40em;
+}
+.ac-code {
+  font-family: var(--mono);
+  font-weight: 200;
+  font-size: clamp(44px, 8vw, 92px);
+  letter-spacing: 0.12em;
+  line-height: 1;
+  color: var(--ac-ink);
+  white-space: nowrap;
+  padding: 28px 0 24px;
+  border-block: 1px solid var(--ac-rule);
+  width: min(100%, 560px);
+  text-align: center;
+}
+.ac-code-meta {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ac-muted);
+}
+.ac-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.ac-actions form {
+  margin: 0;
+}
+.ac-focus-main code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  color: var(--ac-ink);
+}
+
+/* ------------------------------------------ inside a frame the palette is the report's */
+
+/* The shell paints the paper; a frame paints the report's dark ground. Everything drawn
+   inside a frame that is not the document itself (the bar, the dots, the phone link) must
+   read on that ground, so the dark tokens come back here. */
+.ac-frame {
+  --ac-ink: #f2ede3;
+  --ac-body: #c6c4be;
+  --ac-muted: #8e949d;
+  --ac-faint: #7e8791;
+  --ac-rule: rgba(242, 237, 227, 0.12);
+  --ac-hair: rgba(242, 237, 227, 0.07);
+  --ac-accent: #6fb4ff;
+  background: #0b0e12;
+  color: var(--ac-body);
+}
+.ac-frame-bar {
+  font-size: 11px;
+}
+.ac-frame-open a {
+  color: var(--ac-ink);
+  border-block-end-color: rgba(111, 180, 255, 0.5);
+}
+.ac-sticker {
+  background: #0b0e12;
+}
+.ac-sticker-svg {
+  background: #0b0e12;
+}

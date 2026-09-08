@@ -1,0 +1,55 @@
+# Gate thresholds for Actuals v2. Targets never lower. Every gate starts
+# `enforced = false` at M0 (waived until its measurement exists) and flips to `true` in the
+# same change that lands the measurement, never before. A red enforced gate blocks main.
+# 2026-09-03: G2, G6, G7 measured and enforced; later the same day G1, G3, G4, G5 measured
+# on the synthetic fixtures and enforced (see eval/runs/accuracy.jsonl). All seven enforced.
+# 2026-09-03, later: G6 redefined with the local app (D13) from "zero sockets" to "no sockets
+# except loopback"; the measure now also starts the app and talks to it over 127.0.0.1.
+
+[g1_commit_join_precision]
+title = "Commit-join precision vs git log truth on synthetic repos"
+kind = "min"
+threshold = 0.95
+enforced = true
+
+[g2_cost_vs_first_party]
+title = "Per-session output tokens vs an independent per-request recount (cost = usage x rates by construction); the first-party /insights session-meta is logged alongside as a finding, it sums per transcript line"
+kind = "max_abs_rel_error"
+threshold = 0.001
+enforced = true
+
+[g3_fate_classification]
+title = "Fate classification accuracy on synthetic transcripts"
+kind = "min"
+threshold = 0.95
+enforced = true
+
+[g4_tree_reconstruction]
+title = "Tree reconstruction (parent, depth, peak) exact on synthetic trees"
+kind = "min"
+threshold = 1.0
+enforced = true
+
+[g5_fuzz_no_crash]
+title = "Malformed-line corpus: zero crashes"
+kind = "max"
+threshold = 0
+enforced = true
+
+[g6_no_network]
+title = "No sockets except loopback: zero non-loopback connection attempts during run and the local app on 127.0.0.1 (redefined with D13, 2026-09-03)"
+kind = "max"
+threshold = 0
+enforced = true
+
+[g7_schema_drift]
+title = "Fixtures pinned per tool version; unseen version warns, never parses silently"
+kind = "min"
+threshold = 1.0
+enforced = true
+
+[g8_claim_verdicts]
+title = "D16 claim verdicts (report_delivered, session_outcome) vs the blind generator's expectations, matched by owner+kind+subject"
+kind = "min"
+threshold = 0.95
+enforced = true

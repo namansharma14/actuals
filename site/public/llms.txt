@@ -1,0 +1,19 @@
+# Actuals
+
+> See what your agents actually shipped. One command reads your Claude Code sessions and your git history, right on your machine, and shows what the agents actually left behind: what was kept, what got thrown away, what quietly died, and what it cost. The report is a file you own, and nothing leaves your computer.
+
+Run it: `npx actuals` (Node 20 or newer). It reads the sessions already on your disk and opens a report on 127.0.0.1. No sign up, no key, no upload.
+
+## What the report shows
+
+- Every session your agents ran, every subagent they spawned, and what each one cost, counted once per request. Costs are estimated at list rates; commits and files are measured from git and the disk.
+- A run counts as kept only when the files it wrote are still on disk and tracked in git.
+- Every agent drawn to time: how many were alive minute by minute, which ones died, which model, who started it, and what it wrote.
+- A status line for the Claude Code status bar: `actuals watch`.
+- A card and a post text the command writes on your machine.
+
+## Pages
+
+- https://getactuals.net/ the landing
+- https://getactuals.net/how-to-use how to use it: seven steps from the first run to the sticker, the terminal and VS Code difference, the commands
+- https://getactuals.net/demo one real repository, redacted, measured as a live report

@@ -1,0 +1,11 @@
+{
+  "name": "actuals",
+  "description": "Measure what your coding agents actually shipped. One skill so Claude Code or Codex can run actuals, read the report, propose the fixes it derives, apply them on confirmation, and set up the always-on meter. Local, nothing uploaded, no model called.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Actuals"
+  },
+  "homepage": "https://getactuals.net",
+  "repository": "https://github.com/namansharma14/actuals",
+  "license": "FSL-1.1-ALv2"
+}

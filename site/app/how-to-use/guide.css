@@ -1,0 +1,209 @@
+/* The how-to-use page, on the shell's paper and tokens: the page ramp's head (display, lede, the two
+   commands as pills), seven numbered steps each with its picture of the report, two tables and one
+   note. Every colour is a shell token; every gap is a shell step. */
+
+.ac-guide-head {
+  gap: var(--ac-4);
+}
+.ac-guide-cmds {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ac-4) var(--ac-6);
+  margin-block-start: var(--ac-3);
+}
+.ac-guide-cmd {
+  display: grid;
+  gap: var(--ac-2);
+  justify-items: start;
+  min-width: 0;
+}
+.ac-guide-lab {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ac-muted);
+}
+
+/* ------------------------------------------------------------------------ the steps */
+.ac-guide-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--ac-6);
+}
+.ac-guide-step {
+  display: grid;
+  gap: var(--ac-3);
+  min-width: 0;
+}
+.ac-guide-step > header {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: var(--ac-3);
+  align-items: baseline;
+}
+.ac-guide-n {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--ac-accent);
+}
+.ac-guide-h2 {
+  margin: 0;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: clamp(22px, 2.4vw, 30px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ac-ink);
+  text-wrap: balance;
+}
+.ac-guide-step > p,
+.ac-guide-sec > p {
+  margin: 0;
+  max-width: 64ch;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ac-body);
+  text-wrap: pretty;
+}
+.ac-guide-do {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 56px;
+  display: grid;
+  gap: var(--ac-2);
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ac-body);
+}
+.ac-guide-do li {
+  max-width: 64ch;
+  text-wrap: pretty;
+}
+.ac-guide-do li::before {
+  content: "\2192\00a0";
+  color: var(--ac-accent);
+}
+.ac-guide-ui {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  color: var(--ac-ink);
+}
+.ac-guide-warm {
+  color: var(--ac-warn);
+}
+.ac-guide-fig {
+  margin: var(--ac-2) 0 0;
+  display: grid;
+  gap: var(--ac-2);
+  min-width: 0;
+}
+.ac-guide-fig img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid var(--ac-rule);
+  border-radius: 3px;
+  background: #0b0e12;
+}
+.ac-guide-fig figcaption {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ac-muted);
+  max-width: 70ch;
+  text-wrap: pretty;
+}
+
+/* ----------------------------------------------------------------------- the tables */
+.ac-guide-sec {
+  gap: var(--ac-3);
+}
+.ac-guide-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ac-body);
+  margin-block-start: var(--ac-2);
+}
+.ac-guide-table th,
+.ac-guide-table td {
+  text-align: left;
+  padding: 10px 20px 10px 0;
+  border-block-end: 1px solid var(--ac-rule);
+  vertical-align: top;
+}
+.ac-guide-table th {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ac-muted);
+}
+.ac-guide-table th code {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 12px;
+  color: var(--ac-muted);
+}
+.ac-guide-table td:first-child {
+  white-space: nowrap;
+  color: var(--ac-ink);
+}
+.ac-guide-table td code {
+  white-space: nowrap;
+}
+.ac-guide-note {
+  margin: var(--ac-3) 0 0;
+  border-inline-start: 2px solid var(--ac-accent);
+  padding: 4px 0 4px 16px;
+  max-width: 64ch;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ac-ink);
+  text-wrap: pretty;
+}
+
+@media (max-width: 720px) {
+  .ac-guide-cmds {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ac-guide-step > header {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ac-1);
+  }
+  .ac-guide-do {
+    padding-inline-start: 0;
+  }
+  /* each row stacks: the command or place on its own line, what it does under it */
+  .ac-guide-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .ac-guide-table,
+  .ac-guide-table tbody {
+    display: block;
+  }
+  .ac-guide-table tr {
+    display: grid;
+    gap: 2px;
+    padding: 10px 0;
+    border-block-end: 1px solid var(--ac-rule);
+  }
+  .ac-guide-table td {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+  .ac-guide-table td:first-child {
+    white-space: normal;
+  }
+}

@@ -1,0 +1,89 @@
+name: release
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  id-token: write
+
+# Publishing is written in but stays off until the maintainer has added the trusted publisher
+# on npmjs.com and set the repository variable RELEASE_PUBLISH=true. The public export
+# stays off until PUBLIC_EXPORT=true and PUBLIC_REPO_TOKEN exist. Until then a tag runs
+# the checks and builds, and stops.
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v7.0.0
+        with: { node-version: 22, cache: npm, cache-dependency-path: "**/package-lock.json" }
+      - run: npm ci
+      - run: npm run check
+      - run: npx tsx eval/socket-parity.ts
+      - run: node scripts/copy-gate.mjs
+      - run: npm run build
+      - run: node scripts/tarball-check.mjs
+      - name: Tag matches package.json
+        shell: bash
+        run: |
+          v="$(node -p "require('./package.json').version")"
+          [ "refs/tags/v$v" = "${{ github.ref }}" ] || { echo "tag ${{ github.ref_name }} does not match package.json version $v"; exit 1; }
+
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with: { node-version: 20, cache: npm, cache-dependency-path: "**/package-lock.json" }
+      - run: npm ci
+      - run: npm ci
+        working-directory: site
+      - run: npm run types
+        working-directory: site
+      - run: npm run lint
+        working-directory: site
+      - run: node_modules/.bin/tsx scripts/fixture-gate.ts
+      - run: npm run build
+        working-directory: site
+        env: { NEXT_TELEMETRY_DISABLED: "1" }
+      - run: node scripts/bundle-budget.mjs site/.next /page 260
+
+  publish:
+    needs: [check, site]
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with: { node-version: 22, cache: npm, registry-url: "https://registry.npmjs.org" }
+      - name: npm with trusted publishing (11.5 or newer)
+        run: npm i -g npm@latest && npm --version
+      - run: npm ci
+      - run: npm run build
+      - name: Publish with provenance (off until RELEASE_PUBLISH=true)
+        if: vars.RELEASE_PUBLISH == 'true'
+        run: npm publish --provenance --access public
+      - name: Publish is off
+        if: vars.RELEASE_PUBLISH != 'true'
+        run: echo "RELEASE_PUBLISH is not 'true'; nothing published. Today's release publishes by hand." >> "$GITHUB_STEP_SUMMARY"
+
+  public-export:
+    needs: [check, site]
+    runs-on: ubuntu-latest
+    if: vars.PUBLIC_EXPORT == 'true'
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - name: Clone the public repository
+        env: { TOKEN: "${{ secrets.PUBLIC_REPO_TOKEN }}" }
+        run: |
+          [ -n "$TOKEN" ] || { echo "PUBLIC_REPO_TOKEN is not set"; exit 1; }
+          git clone --quiet "https://x-access-token:${TOKEN}@github.com/${{ vars.PUBLIC_REPO || 'namansharma14/actuals' }}.git" "$RUNNER_TEMP/public"
+          git -C "$RUNNER_TEMP/public" config user.name "actuals release"
+          git -C "$RUNNER_TEMP/public" config user.email "release@getactuals.net"
+      - name: Export, commit one release, push
+        run: bash scripts/publish-public.sh --out "$RUNNER_TEMP/public" --commit --push origin --branch main

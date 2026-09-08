@@ -1,0 +1,1979 @@
+/* The landing's beats and the scene's overlays, on the landing's tokens (landing.css sets them
+   on .lp). One object, one accent, three type roles; every size set here. The scene draws over
+   a transparent canvas; the paper panel of the bright chapter sits under it so the frame can
+   carry the chart into the light. */
+
+.lp {
+  --line-solid: #2b2e32;
+  --line-lit: #3b3f45;
+  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* a little film grain in the air, over the ground only: the sections and every object sit above it */
+.lp::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("/grain.png");
+  background-size: 128px 128px;
+  opacity: 0.09;
+}
+.lp .lp-nav-word {
+  color: var(--ink);
+}
+
+/* the pill's control reads at 14 px: measured 12 to 13 at the CSS's 13 */
+.sc-hero-copy .ac-pill button {
+  font-size: 14px;
+}
+
+html {
+  scroll-padding-top: var(--nav-h);
+}
+.lp-main {
+  display: contents;
+}
+/* the skip link: the first thing the keyboard reaches, visible only then */
+.lp-skip {
+  position: fixed;
+  left: var(--gut);
+  top: 12px;
+  z-index: 60;
+  padding: 10px 14px;
+  border: 1px solid var(--acc);
+  border-radius: 6px;
+  background: var(--g2);
+  color: var(--ink);
+  font-size: 14px;
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+.lp-skip:focus-visible {
+  transform: none;
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+.lp .lp-nav a:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* ------------------------------------------------------------------ the nav, ruled */
+/* once scrolled the nav is one constant state: an opaque ground about 1.25:1 against the
+   page and a hairline at the line token, identical at every scroll position after the first */
+.lp .lp-nav {
+  transition: none;
+}
+.lp .lp-nav.is-glass,
+.lp .lp-nav.is-scrolled {
+  background: rgba(20, 24, 31, 0.22);
+  border-block-end-color: rgba(128, 132, 138, 0.24);
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+}
+.lp .lp-nav.on-paper-word .lp-nav-word {
+  color: var(--ink-d);
+}
+.lp .lp-nav.on-paper-links a:not(.lp-nav-word) {
+  color: var(--ink-d);
+}
+
+.sc-paper.is-full {
+  --paper-edge: 0;
+}
+
+/* ------------------------------------------------------------------ the scene's layers */
+.sc-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+html[data-grab] .sc-stage {
+  cursor: grab;
+}
+html[data-grabbing] .sc-stage {
+  cursor: grabbing;
+}
+.sc-labels {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+.sc-lb {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  font-size: 13px;
+  color: var(--body);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 200ms;
+  font-variant-numeric: tabular-nums;
+}
+.sc-lb.on {
+  opacity: 1;
+}
+.sc-lb.sc-peak {
+  font-family: var(--mono);
+  letter-spacing: 0.01em;
+  color: var(--body);
+}
+.sc-lb.sc-mono {
+  font-family: var(--mono);
+  letter-spacing: 0.02em;
+  padding: 1px 4px;
+}
+.sc-ld {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: var(--body);
+  opacity: 0;
+  transition: opacity 200ms;
+}
+.sc-ld.on {
+  opacity: 0.9;
+}
+.sc-lb.sc-note {
+  font-family: var(--mono);
+  letter-spacing: 0.01em;
+  transition: opacity 320ms;
+}
+.sc-lb.sc-note.on {
+  opacity: 1;
+}
+.sc-ld.sc-note.on {
+  opacity: 0.9;
+}
+.sc-labels.on-paper .sc-lb {
+  color: var(--body-d);
+}
+.sc-labels.on-paper .sc-lb.sc-peak {
+  color: var(--ink-d);
+}
+.sc-labels.on-paper .sc-ld {
+  background: var(--body-d);
+}
+.sc-tip {
+  position: fixed;
+  z-index: 7;
+  pointer-events: none;
+  padding: 9px 11px;
+  border: 1px solid var(--line-solid);
+  border-radius: 3px;
+  background: rgba(12, 15, 19, 0.94);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink);
+  white-space: nowrap;
+  transform: translate(14px, -50px);
+}
+.sc-tip i {
+  display: block;
+  font-style: normal;
+  color: var(--mute);
+}
+.sc-tip [data-died] {
+  color: var(--warn);
+}
+
+/* ------------------------------------------------------------------ type */
+.sc-h {
+  margin: 0;
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.sc-h em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  font-size: 1.08em;
+}
+.sc-h span {
+  display: block;
+}
+.sc-h1 {
+  font-size: clamp(44px, 4.4vw, 64px);
+}
+.sc-h2 {
+  font-size: clamp(34px, 3.6vw, 52px);
+}
+.sc-h3 {
+  font-size: clamp(26px, 2.4vw, 34px);
+  margin-block-start: 12px;
+}
+.sc-lede {
+  margin: 0;
+  max-width: 30em;
+  font-size: clamp(16px, 1.3vw, 18.5px);
+  line-height: 1.45;
+  color: var(--body);
+  text-wrap: pretty;
+}
+.sc-lede code {
+  font-family: var(--mono);
+  font-size: 0.92em;
+  color: var(--body);
+}
+.sc-fine {
+  margin: 0;
+  font-size: 13px;
+  color: var(--mute);
+}
+
+/* ------------------------------------------------------------------ the arrival and the command */
+.sc-open {
+  position: relative;
+  min-height: 240svh;
+  z-index: 3;
+}
+.sc-open-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 640px;
+  column-gap: 40px;
+  align-content: center;
+  padding: calc(var(--nav-h) + 16px) var(--gut) 48px;
+  box-sizing: border-box;
+}
+.sc-hero-copy {
+  grid-column: 1;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 22px;
+  will-change: opacity, transform;
+}
+.sc-cmd-copy {
+  position: absolute;
+  left: var(--gut);
+  right: calc(640px + 40px + var(--gut));
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+.sc-win {
+  grid-column: 2;
+  align-self: center;
+  width: 640px;
+  height: min(60vh, 540px);
+  min-height: 440px;
+  transition: opacity 300ms;
+}
+/* the hero's window: the report at its own scale, straight, a step lighter than the ground, one edge light on top,
+   the one soft shadow below; the line token everywhere. the interior is the report's own ground */
+.sc-win .lp-win {
+  height: 100%;
+  border-color: var(--line-solid);
+  border-top-color: var(--line-lit);
+  border-radius: 3px;
+  background: var(--g2);
+  box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.8);
+}
+.sc-win .lp-win-body {
+  position: relative;
+  background: var(--g2);
+  padding: 10px;
+}
+/* the bezel carries the page's own grain, so it is a surface on the page and not a flat pasted on it */
+.sc-win .lp-win-bar {
+  position: relative;
+}
+.sc-win .lp-win-bar > * {
+  position: relative;
+}
+.sc-win .lp-win-bar::before,
+.sc-win .lp-win-body::before,
+.sc-still-body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/grain.png");
+  background-size: 128px 128px;
+  opacity: 0.09;
+  pointer-events: none;
+}
+.sc-win .lp-win-body iframe {
+  position: relative;
+  border-radius: 2px;
+}
+/* through the lift the window's body fades first; the bar alone holds until the object has turned past 45 degrees */
+.sc-win.is-bar-only .lp-win {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+/* the phone's still: the report's own phone layout of the tallest tree, captured 1:1, and one way in */
+.sc-still {
+  display: none;
+  margin-block-start: 32px;
+  text-decoration: none;
+  color: var(--body);
+}
+.sc-still-win {
+  display: block;
+  border: 1px solid var(--line-solid);
+  border-top-color: var(--line-lit);
+  border-radius: 3px;
+  background: var(--g2);
+  overflow: hidden;
+  box-shadow: 0 30px 70px -36px rgba(0, 0, 0, 0.8);
+}
+.sc-still-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-block-end: 1px solid var(--line-solid);
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--mute);
+}
+.sc-still-bar i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #3a414b;
+  display: inline-block;
+  flex: none;
+}
+.sc-still-bar i + span {
+  margin-inline-start: 6px;
+}
+.sc-still-body {
+  position: relative;
+  display: block;
+  padding: 10px;
+  background: var(--g2);
+}
+.sc-still img {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 2px;
+}
+/* the way in is a link: text with a hairline rule, the accent on hover */
+/* the visible text and its hairline stay put; the box around them is the 44 px target */
+.sc-still-link {
+  display: inline-block;
+  margin-block-start: 12px;
+  font-size: 15px;
+  color: var(--body);
+  line-height: 1.3;
+  padding-block: 12px;
+  margin-block: 0 -12px;
+  transition: color 160ms;
+}
+.sc-still-link > span {
+  border-block-end: 1px solid var(--line-solid);
+  transition: border-color 160ms;
+}
+.sc-still:hover .sc-still-link > span,
+.sc-still:focus-visible .sc-still-link > span {
+  border-color: var(--acc);
+}
+.sc-still:hover .sc-still-link,
+.sc-still:focus-visible .sc-still-link {
+  color: var(--acc);
+  border-color: var(--acc);
+}
+.sc-win .lp-win-bar {
+  border-block-end-color: var(--line-solid);
+}
+.sc-win .lp-win-note {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 50%;
+}
+
+.sc-drawing {
+  grid-column: 6 / 13;
+  align-self: center;
+  display: none;
+}
+html[data-scene] .sc-drawing,
+html:not([data-scene]) .sc-drawing {
+  display: block;
+}
+html[data-scene="pinned"] .sc-drawing svg {
+  clip-path: inset(0 calc((1 - var(--grow, 1)) * 100%) 0 0);
+}
+html[data-scene="pinned"] .sc-drawing .sc-svg-notes,
+html[data-scene="pinned"] .sc-drawing .sc-svg-readout {
+  opacity: 0;
+  transition: opacity 320ms;
+}
+html[data-scene="pinned"] .sc-drawing.is-grown .sc-svg-notes,
+html[data-scene="pinned"] .sc-drawing.is-grown .sc-svg-readout {
+  opacity: 1;
+}
+.sc-drawing svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.sc-svg-mono {
+  font-family: var(--mono);
+  font-size: 13px;
+  fill: var(--mute);
+}
+.sc-svg-peak {
+  font-family: var(--sans);
+  font-size: 13px;
+  fill: var(--ink);
+}
+/* the terminal: the pill glides down and squares into a terminal line; the command types itself once;
+   the output resolves one line per beat, at a measure that never wraps */
+.sc-term {
+  position: fixed;
+  z-index: 3;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border: 1px solid rgba(111, 180, 255, 0.55);
+  background: rgba(111, 180, 255, 0.06);
+  font-family: var(--mono);
+  line-height: 1.75;
+  color: var(--ink);
+  white-space: pre;
+}
+.sc-term.is-term {
+  border-color: var(--line-solid);
+  background: rgba(7, 9, 12, 0.88);
+}
+.sc-term-p {
+  color: var(--acc);
+}
+.sc-term-o {
+  color: var(--body);
+  opacity: var(--k, 1);
+}
+html[data-scene="pinned"] .sc-term-o {
+  opacity: calc(var(--k, 0));
+}
+.sc-caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  margin-left: 1px;
+  background: var(--ink);
+  vertical-align: -0.15em;
+  opacity: 0;
+}
+.sc-caret.on {
+  opacity: 1;
+}
+/* without the scene the terminal is printed in flow, complete */
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-term {
+  position: static;
+  opacity: 1;
+  border-color: var(--line-solid);
+  background: rgba(7, 9, 12, 0.88);
+  border-radius: 8px;
+  padding: 18px 22px;
+  font-size: 13px;
+  width: min(100%, 640px);
+  grid-column: 1 / -1;
+  margin-block-start: 40px;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-cmd-copy {
+  position: static;
+  opacity: 1;
+  grid-column: 1 / -1;
+  margin-block-start: 48px;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-open {
+  min-height: 0;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-open-stage {
+  position: static;
+  height: auto;
+  row-gap: 0;
+}
+
+/* ------------------------------------------------------------------ the night */
+.sc-night {
+  position: relative;
+  min-height: 300svh;
+  z-index: 3;
+}
+.sc-night-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 24px;
+  align-content: center;
+  padding: 88px var(--gut) 48px;
+  box-sizing: border-box;
+}
+.sc-night-copy {
+  grid-column: 1 / 5;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  /* pinned at its final place from the beat's first frame: it exists only once the stage is pinned */
+  opacity: 0;
+}
+.sc-night-copy.is-pinned,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-night-copy {
+  opacity: 1;
+}
+.sc-night-copy p {
+  margin: 0;
+  font-size: clamp(22px, 2.2vw, 32px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  opacity: 0.35;
+  transition: opacity 260ms;
+}
+.sc-night-copy p.on,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-night-copy p {
+  opacity: 1;
+}
+
+/* the runs, for the keyboard: out of sight until one takes focus, then a plain list item at the stage's foot */
+.sc-runs {
+  grid-column: 1 / 6;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  position: absolute;
+  left: var(--gut);
+  bottom: 40px;
+}
+.sc-runs button {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+  padding: 0;
+  margin: -1px;
+  background: transparent;
+  color: var(--body);
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+.sc-runs button:focus-visible {
+  position: static;
+  width: auto;
+  height: auto;
+  clip: auto;
+  margin: 0;
+  padding: 6px 10px;
+  outline: 2px solid var(--acc);
+  outline-offset: -2px;
+  background: rgba(12, 15, 19, 0.92);
+}
+
+html[data-scene="pinned"] .sc-drawing {
+  grid-column: 6 / 13;
+  align-self: center;
+}
+
+/* ------------------------------------------------------------------ the turn (gone with the 3D; the rule stays inert) */
+.sc-turn {
+  position: relative;
+  min-height: 220svh;
+  z-index: 3;
+}
+.sc-turn-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 24px;
+  align-content: end;
+  padding: 88px var(--gut) 44px;
+  box-sizing: border-box;
+}
+.sc-turn-copy {
+  grid-column: 1 / 7;
+  margin: 0;
+  font-size: 15.5px;
+  color: var(--body);
+  max-width: 34em;
+  opacity: 0;
+  transition: opacity 300ms;
+}
+.sc-turn-copy.on,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-turn-copy {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------------ the bright chapter */
+.sc-bright {
+  position: relative;
+  min-height: 220svh;
+}
+.sc-bright-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+}
+/* paper is paper: one edge light on the leading edge, one soft shadow cast onto the dark, a texture at low contrast */
+.sc-paper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  visibility: hidden;
+  background: var(--paper);
+  color: var(--body-d);
+  transform: translateX(100%);
+  will-change: transform;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 24px;
+  align-content: center;
+  padding: 100px var(--gut) 80px;
+  box-sizing: border-box;
+  box-shadow:
+    1px 0 0 rgba(255, 255, 255, var(--paper-edge, 0.55)) inset,
+    -28px 0 56px -24px rgba(0, 0, 0, 0.65);
+}
+.sc-paper.is-in {
+  visibility: visible;
+}
+.sc-paper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--noise);
+  opacity: 0.07;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+.sc-paper-copy {
+  grid-column: 1 / 6;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+.sc-paper .sc-h {
+  color: var(--ink-d);
+}
+.sc-paper .sc-lede {
+  color: var(--body-d);
+}
+.sc-paper .sc-fine {
+  color: var(--mute-d);
+}
+/* the report's frame: drawn around the laid-down chart, then riding into the light with the chart inside it */
+.sc-frame {
+  position: fixed;
+  z-index: 2;
+  pointer-events: none;
+  border: 1px solid var(--line-solid);
+  border-radius: 8px;
+  background: var(--g2);
+  opacity: 0;
+  transition: opacity 260ms;
+  overflow: clip;
+  box-sizing: border-box;
+}
+.sc-frame.on {
+  opacity: 1;
+}
+/* the page's grain inside the frame, on paper and on the dark fill alike */
+.sc-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/grain.png");
+  background-size: 128px 128px;
+  opacity: 0.09;
+  pointer-events: none;
+}
+.sc-frame > * {
+  position: relative;
+}
+.sc-frame-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  padding: 0 14px;
+  border-block-end: 1px solid var(--line-solid);
+  background: rgba(17, 21, 27, 0.85);
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--mute);
+}
+.sc-frame-bar i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3a414b;
+  display: inline-block;
+}
+.sc-frame-bar span:last-child {
+  margin-left: auto;
+  color: var(--mute);
+  font-family: var(--sans);
+  font-size: 13px;
+}
+.sc-frame.is-paper {
+  border-color: rgba(20, 23, 28, 0.16);
+  border-radius: 3px;
+  background: var(--paper);
+  z-index: 3;
+}
+.sc-frame.is-paper .sc-frame-bar {
+  border-block-end-color: rgba(20, 23, 28, 0.16);
+  background: rgba(20, 23, 28, 0.04);
+  color: var(--mute-d);
+}
+.sc-frame.is-paper .sc-frame-bar i {
+  background: rgba(20, 23, 28, 0.12);
+}
+.sc-frame.is-paper .sc-frame-bar span:last-child {
+  color: var(--mute-d);
+}
+.sc-frame-body {
+  position: absolute;
+  inset: 36px 0 0 0;
+  overflow: hidden;
+}
+.sc-frame-doc {
+  padding: 0 28px 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  opacity: 0;
+  color: var(--body-d);
+  will-change: opacity;
+}
+/* the figures: a sticky readout row at the top of the frame's document; the table scrolls under it */
+.sc-figs {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 26px 0 14px;
+  background: var(--paper);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+/* the readout row carries the same grain as the frame, so it is the frame's own surface and not a band */
+.sc-figs::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/grain.png");
+  background-size: 128px 128px;
+  opacity: 0.09;
+  pointer-events: none;
+}
+.sc-figs > * {
+  position: relative;
+}
+.sc-frame:not(.is-paper) .sc-figs {
+  background: var(--g2);
+}
+.sc-kept-head {
+  grid-column: 1 / -1;
+  margin: 0 0 4px;
+  font-size: 13.5px;
+  color: var(--ink-d);
+}
+.sc-written {
+  color: var(--mute-d);
+}
+/* one grid inside the frame: the table's four columns, and the figures sit on them */
+.sc-grid {
+  display: grid;
+  grid-template-columns: 4.6em minmax(0, 1.55fr) minmax(0, 0.95fr) minmax(0, 1.1fr);
+  column-gap: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.sc-fig {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.sc-fig-wide {
+  grid-column: 1 / 3;
+}
+.sc-fig b {
+  display: block;
+  min-width: calc(var(--w, 3) * 0.62em);
+  font-family: var(--mono);
+  font-weight: 200;
+  font-size: clamp(30px, 2.6vw, 40px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--ink-d);
+  white-space: nowrap;
+}
+.sc-fig span {
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--body-d);
+}
+.sc-chart-slot {
+  width: 100%;
+  margin-block-start: 4px;
+}
+.sc-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: baseline;
+  padding: 8px 0;
+  border-block-start: 1px solid rgba(20, 23, 28, 0.16);
+  font-size: 14px;
+  color: var(--body-d);
+  opacity: 0;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-row,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-frame-doc,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-paper-copy {
+  opacity: 1;
+}
+.sc-row > span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* the three states wrap rather than truncate: a cut number is a wrong number */
+.sc-row > span:nth-child(2) {
+  white-space: normal;
+  overflow: visible;
+}
+.sc-day {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--mute-d);
+}
+.sc-day b {
+  display: inline-block;
+  min-width: 2ch;
+  text-align: right;
+  font-weight: 400;
+}
+/* the amount column, aligned on the decimal; the suffix a fixed-width column of its own */
+.sc-amt {
+  display: grid;
+  grid-template-columns: 1fr 6.2em;
+  align-items: baseline;
+  column-gap: 0.5em;
+  text-align: right;
+}
+.sc-amt b {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--body-d);
+}
+.sc-amt i {
+  font-style: normal;
+  color: var(--mute-d);
+  text-align: left;
+}
+.sc-frame-foot {
+  margin: 0;
+  font-size: 13px;
+  color: var(--mute-d);
+}
+
+/* ------------------------------------------------------------------ the drawer: the panel slides away, the frame stays, the real drawer slides in */
+.sc-drawer {
+  position: relative;
+  pointer-events: none;
+  min-height: 240svh;
+  z-index: 3;
+}
+.sc-drawer-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  /* the stage sits above the frame for its copy; the pointer passes through to the frame's page */
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 24px;
+  align-content: center;
+  padding: 88px var(--gut) 48px;
+  box-sizing: border-box;
+}
+.sc-drawer-copy {
+  pointer-events: auto;
+  grid-column: 1 / 6;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  opacity: 0;
+  transition: opacity 300ms;
+}
+.sc-drawer-copy.on,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-drawer-copy {
+  opacity: 1;
+}
+/* the real drawer inside the frame: slides in from the right, clipped to the frame, opaque, and answers the pointer */
+.sc-frame-embed {
+  position: absolute;
+  inset: 36px 0 0 0;
+  overflow: clip;
+  transform: translateX(100%);
+  background: var(--g2);
+  will-change: transform;
+}
+.sc-frame-embed iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--g2);
+}
+.sc-frame.is-live {
+  pointer-events: auto;
+}
+
+/* ------------------------------------------------------------------ the status line: the frame shrinks to a strip, the line types once */
+.sc-status {
+  position: relative;
+  pointer-events: none;
+  min-height: 200svh;
+  z-index: 3;
+}
+.sc-status-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  /* the stage sits above the frame for its copy; the pointer passes through to the frame's page */
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 24px;
+  align-content: center;
+  padding: 88px var(--gut) 48px;
+  box-sizing: border-box;
+}
+.sc-status-copy {
+  pointer-events: auto;
+  grid-column: 1 / 6;
+  max-width: 488px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  opacity: 0;
+  transition: opacity 300ms;
+}
+.sc-status-copy.on,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-status-copy {
+  opacity: 1;
+}
+.sc-frame-status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink);
+  white-space: nowrap;
+  opacity: 0;
+  background: rgba(7, 9, 12, 0.88);
+}
+.sc-frame.is-strip .sc-frame-bar,
+.sc-frame.is-strip .sc-frame-body,
+.sc-frame.is-strip .sc-frame-embed {
+  visibility: hidden;
+}
+.sc-frame.is-strip .sc-frame-status {
+  opacity: 1;
+}
+.sc-frame-status-note {
+  margin-left: auto;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--mute);
+}
+.sc-status-copy .sc-fine {
+  position: fixed;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 300ms;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-status-copy .sc-fine {
+  position: static;
+}
+.sc-status-copy .sc-fine.on,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-status-copy .sc-fine {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------------ the card: the frame closes to a square and is the sticker */
+.sc-card {
+  position: relative;
+  pointer-events: none;
+  min-height: 200svh;
+  z-index: 3;
+}
+.sc-card-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  /* the stage sits above the frame for its copy; the pointer passes through to the card */
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 24px;
+  align-content: center;
+  padding: 88px var(--gut) 48px;
+  box-sizing: border-box;
+}
+.sc-card-copy {
+  grid-column: 1 / 6;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  opacity: 0;
+  transition: opacity 300ms;
+}
+.sc-card-line {
+  margin: 0;
+  font-size: clamp(22px, 2.2vw, 32px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--body);
+}
+.sc-card-note {
+  margin: 0;
+  font-size: 15px;
+  color: var(--mute);
+}
+.sc-card-copy.on,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-card-copy {
+  opacity: 1;
+}
+/* the sticker on its transparency check; tilts under the pointer; flips to its post on a click */
+.sc-frame-card {
+  position: absolute;
+  inset: 0;
+  display: none;
+  padding: 0;
+  border: 0;
+  background:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.05) 0 25%, transparent 0 50%) 0 0 / 24px 24px;
+  cursor: pointer;
+  perspective: 1200px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+.sc-frame.is-card .sc-frame-card {
+  display: block;
+}
+/* the sticker sits inset on the check, so the check reads as what it is: the transparency around a card */
+.sc-card-front {
+  padding: 0;
+}
+.sc-card-front .ac-sticker-svg {
+  background: transparent;
+}
+.sc-frame.is-card .sc-frame-bar,
+.sc-frame.is-card .sc-frame-body,
+.sc-frame.is-card .sc-frame-embed,
+.sc-frame.is-card .sc-frame-status {
+  visibility: hidden;
+}
+.sc-card-face {
+  position: absolute;
+  inset: 0;
+  display: block;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  transition: transform 520ms var(--ease);
+  transform: rotateX(var(--tx, 0deg)) rotateY(var(--ty, 0deg));
+}
+.sc-card-front .ac-sticker-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.sc-card-back {
+  transform: rotateY(180deg);
+  background: inherit;
+  box-sizing: border-box;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+}
+.sc-frame-card[aria-pressed="true"] .sc-card-front {
+  transform: rotateX(var(--tx, 0deg)) rotateY(calc(var(--ty, 0deg) + 180deg));
+}
+.sc-frame-card[aria-pressed="true"] .sc-card-back {
+  transform: rotateX(var(--tx, 0deg)) rotateY(calc(var(--ty, 0deg) + 360deg));
+}
+.sc-card-post {
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  color: var(--ink);
+}
+.sc-card-post-note {
+  font-size: 14px;
+  color: var(--mute);
+}
+.sc-frame-card:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+/* the receipt tab exists on screen only from its first line; nothing bleeds before that */
+html[data-lp-live] .lp-receipt:not(.is-live) {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ phones: the drawing, no pins */
+@media (max-width: 900px) {
+  .sc-hero-copy,
+  .sc-cmd-copy,
+  .sc-night-copy,
+  .sc-turn-copy,
+  .sc-paper-copy,
+  .sc-drawer-copy,
+  .sc-status-copy,
+  .sc-card-copy,
+  .sc-win,
+  .sc-drawing,
+  .sc-bright .sc-paper-copy,
+  .sc-bright .sc-frame,
+  .sc-status-stage .sc-status-static,
+  .sc-card-stage .sc-card-static {
+    grid-column: 1 / -1;
+  }
+  :is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-bright {
+    padding-block: 56px 48px;
+    row-gap: 32px;
+  }
+  :is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-frame-doc {
+    padding-inline: 14px;
+  }
+  .sc-status-stage .sc-status-static {
+    font-size: 12px;
+    padding: 10px 12px;
+    height: auto;
+    white-space: normal;
+    line-height: 1.6;
+  }
+  .sc-status-stage .sc-status-static .sc-frame-status-note {
+    display: none;
+  }
+  .sc-card-copy {
+    margin-block-end: 20px;
+  }
+  /* the drawing regrows with the scroll (motion.tsx sets --grow) */
+  .sc-drawing svg {
+    clip-path: inset(calc((1 - var(--grow, 1)) * 100%) 0 0 0);
+  }
+
+  .sc-open,
+  .sc-night,
+  .sc-turn,
+  .sc-bright,
+  .sc-drawer,
+  .sc-status,
+  .sc-card {
+    min-height: 0;
+  }
+  .sc-open-stage,
+  .sc-night-stage,
+  .sc-turn-stage,
+  .sc-bright-stage,
+  .sc-drawer-stage,
+  .sc-status-stage,
+  .sc-card-stage {
+    position: static;
+    height: auto;
+  }
+  .sc-open-stage {
+    grid-template-columns: minmax(0, 1fr);
+    padding-top: 88px;
+    row-gap: 0;
+  }
+  .sc-lede {
+    line-height: 1.38;
+  }
+  .sc-open-stage {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .sc-hero-copy {
+    display: contents;
+  }
+  .sc-hero-copy .sc-h1 {
+    order: 1;
+    font-size: 40px;
+    text-wrap: balance;
+  }
+  .sc-hero-copy .sc-h1 span {
+    display: inline;
+  }
+  .sc-hero-copy .sc-h1 span + span::before {
+    content: " ";
+  }
+  .sc-hero-copy .sc-lede {
+    order: 2;
+  }
+  .sc-hero-copy [data-pill] {
+    order: 3;
+  }
+  .sc-still {
+    order: 4;
+    margin-block-start: 8px;
+  }
+  .sc-hero-copy .sc-fine {
+    order: 5;
+  }
+  .sc-hero-copy .sc-fine + .sc-fine {
+    margin-block-start: -6px;
+  }
+  .sc-cmd-copy {
+    order: 6;
+  }
+  .sc-term {
+    order: 7;
+  }
+  .sc-lede {
+    font-size: 17px;
+    line-height: 1.42;
+  }
+  .sc-fine + .sc-fine {
+    margin-block-start: -4px;
+  }
+  .sc-still {
+    margin-block-start: 20px;
+  }
+  .sc-term,
+  .sc-stage,
+  .sc-labels,
+  .sc-win {
+    display: none;
+  }
+  .sc-still {
+    display: block;
+  }
+  .sc-lede {
+    padding-inline-end: 6%;
+  }
+}
+
+/* ------------------------------------------------------------------ reduced motion: the finished page, no pins */
+@media (prefers-reduced-motion: reduce) {
+  .sc-open,
+  .sc-night,
+  .sc-turn,
+  .sc-bright,
+  .sc-drawer,
+  .sc-status,
+  .sc-card {
+    min-height: 0;
+  }
+  .sc-open-stage,
+  .sc-night-stage,
+  .sc-turn-stage,
+  .sc-bright-stage,
+  .sc-drawer-stage,
+  .sc-status-stage,
+  .sc-card-stage {
+    position: static;
+    height: auto;
+  }
+}
+
+/* ------------------------------------------------------------------ no script, no WebGL: every beat's final frame, in flow */
+.sc-status-static,
+.sc-card-static {
+  display: none;
+}
+.sc-flat {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.sc-svg-note {
+  font-family: var(--mono);
+  font-size: 13px;
+  fill: var(--body);
+}
+.sc-svg-note-d {
+  font-family: var(--mono);
+  font-size: 13px;
+  fill: var(--body-d);
+}
+.sc-svg-mono-d {
+  font-family: var(--mono);
+  font-size: 13px;
+  fill: var(--mute-d);
+}
+.sc-svg-peak-d {
+  font-family: var(--mono);
+  font-size: 13px;
+  fill: var(--ink-d);
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-open,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-night,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-turn,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-bright,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-drawer,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-status,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-card {
+  min-height: 0;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-open-stage,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-night-stage,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-turn-stage,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-bright-stage,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-drawer-stage,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-status-stage,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-card-stage {
+  position: static;
+  height: auto;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-bright-stage {
+  display: none;
+}
+/* the chapter: the paper is the section's ground, the copy and the frame side by side in flow */
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-bright {
+  background: var(--paper);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 24px;
+  align-items: start;
+  padding: 88px var(--gut) 72px;
+  box-sizing: border-box;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-paper {
+  position: static;
+  visibility: visible;
+  transform: none;
+  box-shadow: none;
+  display: contents;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-paper-copy {
+  grid-column: 1 / 6;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-frame {
+  position: relative;
+  grid-column: 7 / 13;
+  opacity: 1;
+  width: auto;
+  height: auto;
+  border-color: rgba(20, 23, 28, 0.16);
+  border-radius: 3px;
+  background: var(--paper);
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-frame-bar {
+  border-block-end-color: rgba(20, 23, 28, 0.16);
+  background: rgba(20, 23, 28, 0.04);
+  color: var(--mute-d);
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-frame-bar i {
+  background: rgba(20, 23, 28, 0.12);
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-frame-body {
+  position: static;
+  overflow: visible;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-frame-embed,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-frame-status,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-frame-card {
+  display: none;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-frame .sc-figs {
+  position: static;
+  background: var(--paper);
+}
+/* the nav rides with the page when nothing pins: nothing of it ever sits on the wrong ground */
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .lp-nav {
+  position: absolute;
+}
+/* reduced motion: every beat's copy at rest, visible */
+html[data-reduced] .sc-night-copy,
+html[data-reduced] .sc-night-copy p,
+html[data-reduced] .sc-turn-copy,
+html[data-reduced] .sc-paper-copy,
+html[data-reduced] .sc-drawer-copy,
+html[data-reduced] .sc-status-copy,
+html[data-reduced] .sc-card-copy,
+html[data-reduced] .sc-status-copy .sc-fine,
+html[data-reduced] .sc-row,
+html[data-reduced] .sc-frame-doc {
+  opacity: 1;
+}
+
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-chart-slot {
+  aspect-ratio: auto;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-flat {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+/* the status line and the card, themselves, in flow */
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-status-static {
+  grid-column: 6 / 13;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0;
+  padding: 0 16px;
+  height: 44px;
+  border: 1px solid var(--line-solid);
+  border-radius: 6px;
+  background: var(--g2);
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-status-static .sc-frame-status-note {
+  margin-left: auto;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-card-static {
+  grid-column: 7 / 13;
+  display: block;
+  width: min(560px, 100%);
+  aspect-ratio: 1;
+  border: 1px solid var(--line-solid);
+  border-radius: 4px;
+  background: repeating-conic-gradient(rgba(255, 255, 255, 0.05) 0 25%, transparent 0 50%) 0 0 / 24px 24px;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-card-static .ac-sticker-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: transparent;
+}
+
+/* ------------------------------------------------------------------ phones, after the static layout: every block full width */
+@media (max-width: 900px) {
+  html[data-scene] .sc-bright {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 56px var(--gut) 48px;
+    row-gap: 28px;
+  }
+  html[data-scene] .sc-bright .sc-paper-copy,
+  html[data-scene] .sc-bright .sc-frame,
+  html[data-scene] .sc-status-stage .sc-status-static,
+  html[data-scene] .sc-card-stage .sc-card-static {
+    grid-column: 1 / -1;
+    width: auto;
+    max-width: none;
+  }
+  html[data-scene] .sc-card-stage .sc-card-static {
+    width: 100%;
+  }
+  html[data-scene] .sc-status-stage .sc-status-static {
+    height: auto;
+    padding: 10px 12px;
+    white-space: normal;
+    line-height: 1.6;
+    font-size: 12px;
+  }
+  /* the figures two up, the cost across; the rows three columns with what was written under the states */
+  html[data-scene] .sc-figs {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 16px;
+    row-gap: 18px;
+  }
+  html[data-scene] .sc-fig-wide {
+    grid-column: 1 / -1;
+  }
+  html[data-scene] .sc-kept {
+    grid-template-columns: 4.8em 1fr auto;
+    column-gap: 10px;
+  }
+  html[data-scene] .sc-row {
+    grid-template-columns: 4.8em 1fr auto;
+    row-gap: 2px;
+  }
+  html[data-scene] .sc-row .sc-written {
+    grid-column: 2;
+  }
+  html[data-scene] .sc-row .sc-amt {
+    grid-column: 3;
+    grid-row: 1;
+    grid-template-columns: auto auto;
+  }
+  html[data-scene] .sc-row .sc-amt i {
+    text-align: right;
+  }
+  html[data-scene] .sc-fig b {
+    font-size: 26px;
+  }
+  html[data-scene] .sc-fig span,
+  html[data-scene] .sc-row {
+    font-size: 12.5px;
+  }
+}
+
+/* ------------------------------------------------------------------ 2026-09-07, the phone and reduced-motion read of 1118r,
+   and the desktop's: one grain layer on every surface, paper text against the rendered paper, the phone's own drawings */
+.lp {
+  --mute-d: #424855;
+}
+/* one grain layer: the paper panel and the paper section carry it; the frame on paper is transparent to it; the frame's
+   dark fill and the sticky readout row each carry their own single layer over an opaque ground */
+.sc-paper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/grain.png");
+  background-size: 128px 128px;
+  opacity: 0.09;
+  pointer-events: none;
+}
+.sc-paper > * {
+  position: relative;
+}
+.sc-frame.is-paper {
+  background: transparent;
+}
+.sc-frame.is-paper::before {
+  display: none;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-bright {
+  position: relative;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-bright::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/grain.png");
+  background-size: 128px 128px;
+  opacity: 0.09;
+  pointer-events: none;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-bright > * {
+  position: relative;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-frame {
+  background: transparent;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-frame::before,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-frame .sc-figs::before {
+  display: none;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-frame .sc-figs {
+  background: transparent;
+}
+/* the frame's bar on paper, in the paper's own muted token, both spans */
+.sc-frame.is-paper .sc-frame-bar,
+.sc-frame.is-paper .sc-frame-bar span:last-child,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-frame-bar,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-frame-bar span:last-child {
+  color: var(--mute-d);
+}
+/* the figures with room: a step smaller, the third lane a step wider */
+.sc-fig b {
+  font-size: clamp(28px, 2.3vw, 36px);
+}
+.sc-grid {
+  grid-template-columns: 4.6em minmax(0, 1.5fr) minmax(0, 0.95fr) minmax(0, 1.15fr);
+}
+/* the growth mask clips the bars and the curve only; each clock label appears whole once the growth has passed it */
+html[data-scene="pinned"] .sc-drawing svg {
+  clip-path: none;
+}
+html[data-scene="pinned"] .sc-drawing .sc-flat-grow,
+html[data-scene="pinned"] .sc-drawing .sc-flat-curve {
+  clip-path: inset(-20px calc((1 - var(--grow, 1)) * 100%) -20px 0);
+}
+html[data-scene="pinned"] .sc-drawing .sc-flat-tick {
+  opacity: calc(clamp(0, (var(--grow, 1) - var(--t, 0)) * 40, 1));
+}
+/* the drawing at the phone's own width, so its text renders at 13 px */
+.sc-flat-phone {
+  display: none;
+}
+/* the night's copy dims to the muted token, never lower */
+.sc-night-copy p {
+  color: var(--mute);
+  opacity: 1;
+}
+.sc-night-copy p.on,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-night-copy p {
+  color: var(--ink);
+}
+/* the drawer's sub-line, in the body token; the card's note in the body token */
+.sc-sub {
+  margin: -8px 0 0;
+  font-size: clamp(16px, 1.3vw, 18.5px);
+  color: var(--body);
+}
+.sc-card-note,
+.sc-card-post-note {
+  color: var(--body);
+}
+/* the nav is an opaque ground while the paper slides under it */
+.lp .lp-nav.is-sliding {
+  background: #1f2630;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.lp .lp-nav.is-sliding.on-paper-word .lp-nav-word,
+.lp .lp-nav.is-sliding.on-paper-links a:not(.lp-nav-word) {
+  color: var(--ink);
+}
+/* the receipt: warm is a mark beside a figure, never the figure's ink; the header breaks only at its separator */
+.lp-rc-warn span:last-child {
+  color: var(--ink-d);
+}
+.lp-rc-mark {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-inline-end: 7px;
+  border-radius: 50%;
+  background: #c2410c;
+  vertical-align: 1px;
+}
+.lp-rc-sub > span {
+  white-space: nowrap;
+}
+/* the states never wrap inside themselves */
+.sc-state {
+  white-space: nowrap;
+}
+/* the static stack's status strip at the strip's own size; the drawer's final frame in the static stack */
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-status-static {
+  width: 720px;
+  max-width: 100%;
+  height: 44px;
+  box-sizing: border-box;
+  justify-self: end;
+}
+.sc-drawer-static {
+  display: none;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-drawer-static {
+  display: block;
+  grid-column: 7 / 13;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-drawer-static .lp-win {
+  border-color: var(--line-solid);
+  border-top-color: var(--line-lit);
+  border-radius: 3px;
+  background: var(--g2);
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-drawer-static .lp-win-body {
+  background: var(--g2);
+  padding: 10px;
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-drawer-static iframe {
+  display: block;
+  width: 100%;
+  height: min(72svh, 706px);
+  border: 0;
+  border-radius: 2px;
+  background: var(--g2);
+}
+/* the still on the phone crops to the heading and the first bars, where its text is legible */
+/* the still is the report's own narrow layout at 1:1 (328 css px, 2x); the box shows its heading, legend and first bars */
+.sc-still img {
+  height: 360px;
+  object-fit: cover;
+  object-position: 0 0;
+}
+@media (max-width: 900px) {
+  .sc-flat-desk {
+    display: none;
+  }
+  .sc-flat-phone {
+    display: block;
+  }
+  html[data-scene] .sc-status-stage .sc-status-static {
+    font-size: 13px;
+  }
+  html[data-scene] .sc-drawer-stage .sc-drawer-static {
+    grid-column: 1 / -1;
+  }
+  html[data-scene] .sc-drawer-static iframe {
+    height: min(70svh, 560px);
+  }
+  /* the sticker keeps the desktop's rendered size on the phone, scrolling sideways in its check */
+  html[data-scene] .sc-card-stage .sc-card-static {
+    width: 100%;
+    aspect-ratio: auto;
+    overflow-x: auto;
+  }
+  html[data-scene] .sc-card-stage .sc-card-static .ac-sticker-svg {
+    width: 560px;
+    height: 560px;
+    max-width: none;
+  }
+  /* a state never wraps; the lane is wide enough for three */
+  html[data-scene] .sc-row {
+    grid-template-columns: 4.2em minmax(0, 1fr) auto;
+  }
+  html[data-scene] .sc-row > span:nth-child(2) {
+    font-size: 12.5px;
+  }
+}
+
+
+/* ------------------------------------------------------------------ 2026-09-07, round two of the reads (1214r) */
+/* the paper's grain is a mid-grey tile at a low opacity: it keeps the paper within a few levels of its token (about
+   seven levels darker, sigma about one), where the page's dark tile would darken it by twenty */
+.sc-paper::before,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-bright::before,
+.sc-figs::before {
+  background-image: url("/grain-paper.png");
+  opacity: 0.06;
+}
+/* the layers of the pinned page: the night's stage under the paper, the paper under the frame, the frame under the nav */
+.sc-night {
+  z-index: 1;
+}
+.sc-paper {
+  z-index: 2;
+}
+.sc-frame {
+  z-index: 3;
+}
+/* riding in, the dark frame is a border around the night's drawing: no fill, no grain of its own */
+.sc-frame.is-riding:not(.is-paper) {
+  background: transparent;
+}
+.sc-frame.is-riding:not(.is-paper)::before {
+  display: none;
+}
+/* the strip's note in the body token */
+.sc-frame-status-note,
+.sc-status-static .sc-frame-status-note {
+  color: var(--body);
+}
+/* the nav over the paper: a paper-coloured glass, so the ink token reads at 7:1 and better */
+.lp .lp-nav.is-scrolled.on-paper-word.on-paper-links:not(.is-sliding) {
+  background: rgba(243, 239, 230, 0.58);
+  border-block-end-color: rgba(20, 23, 28, 0.16);
+}
+/* the phone: the drawer beat is the frame alone (no live embed squeezed), the card scales to its box, the dates whole */
+@media (max-width: 900px) {
+  html[data-scene] .sc-drawer-static,
+  .sc-drawer-static {
+    display: none;
+  }
+  html[data-scene] .sc-card-stage .sc-card-static {
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+  }
+  html[data-scene] .sc-card-stage .sc-card-static .ac-sticker-svg {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+  }
+  html[data-scene] .sc-row {
+    grid-template-columns: 5em minmax(0, 1fr) auto;
+  }
+  html[data-scene] .sc-row .sc-day {
+    overflow: visible;
+    white-space: nowrap;
+  }
+}
+
+/* ------------------------------------------------------------------ 2026-09-07, the founder's verdict: the sticker as posted */
+/* no transparency check anywhere: the card is the sticker on its own opaque artboard, the report's ground, with one
+   soft shadow; the tilt and the flip stay */
+.sc-frame-card,
+.sc-card-back,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-card-static {
+  background: #0b0e12;
+}
+.sc-card-front .ac-sticker-svg,
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-card-static .ac-sticker-svg {
+  background: #0b0e12;
+}
+.sc-frame.is-card {
+  box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.8);
+}
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-card-static {
+  box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.8);
+}
+/* the pricing section at the foot, on paper like the chapter, between the receipt and the footer */
+.sc-pricing {
+  position: relative;
+  margin: 72px calc(-1 * var(--gut)) 0;
+  padding: 88px var(--gut) 72px;
+  background: var(--paper);
+  color: var(--body-d);
+  --ac-ink: var(--ink-d);
+  --ac-body: var(--body-d);
+  --ac-muted: var(--mute-d);
+  --ac-rule: rgba(20, 23, 28, 0.24);
+  --ac-hair: rgba(20, 23, 28, 0.14);
+}
+.sc-pricing::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/grain-paper.png");
+  background-size: 128px 128px;
+  opacity: 0.06;
+  pointer-events: none;
+}
+.sc-pricing > * {
+  position: relative;
+}
+.sc-pricing .ac-page {
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+  max-width: 1100px;
+  margin: 0;
+  padding: 0;
+}
+.sc-pricing .ac-pill code {
+  color: var(--ink-d);
+}
+.sc-pricing .ac-pill {
+  border-color: rgba(20, 23, 28, 0.24);
+  background: rgba(20, 23, 28, 0.04);
+}
+.sc-pricing .ac-soon {
+  margin: 0;
+  font-size: 15px;
+  color: var(--mute-d);
+  white-space: nowrap;
+}
+.sc-pricing .ac-compare-table th,
+.sc-pricing .ac-compare-table td,
+.sc-pricing .ac-answer-lines p,
+.sc-pricing .ac-sends p,
+.sc-pricing .ac-note {
+  color: var(--body-d);
+}
+.sc-pricing .ac-answer-name,
+.sc-pricing .ac-compare-table thead th,
+.sc-pricing .ac-compare-table tbody th,
+.sc-pricing .ac-later-name b,
+.sc-pricing .ac-later-name span,
+.sc-pricing .ac-compare-plan dt {
+  color: var(--mute-d);
+}
+@media (max-width: 900px) {
+  .sc-pricing {
+    padding: 56px var(--gut) 48px;
+  }
+  .sc-pricing .ac-page {
+    gap: 40px;
+  }
+}
+
+/* the arrival's track: the command beat over its first seven tenths, the chapter's arrival over the last quarter */
+.sc-open {
+  min-height: 300svh;
+}
+
+/* ------------------------------------------------------------------ 2026-09-07, the last list before launch */
+/* a stage's content never ghosts under the nav: each pinned stage is clipped at the nav's reserved height */
+.sc-open-stage,
+.sc-bright-stage,
+.sc-drawer-stage,
+.sc-status-stage,
+.sc-card-stage {
+  clip-path: inset(var(--nav-h) 0 0 0);
+}
+/* the beats hand over without a gap: the status and card sections begin one viewport before the section before
+   them ends, so the outgoing copy is replaced the moment the incoming beat is pinned */
+html[data-scene="pinned"] .sc-status,
+html[data-scene="pinned"] .sc-card {
+  margin-block-start: -100svh;
+}
+/* the nav over paper: a nearly opaque paper glass, so the ink token reads at 7:1 whatever the blur shows */
+.lp .lp-nav.is-scrolled.on-paper-word.on-paper-links:not(.is-sliding) {
+  background: rgba(243, 239, 230, 0.82);
+}
+/* the static stack's paper section sits above the page's grain: one grain layer, the paper's own */
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-bright {
+  z-index: 1;
+}
+/* the strip's parts never break after a separator */
+.sc-status-part {
+  white-space: nowrap;
+}
+@media (max-width: 900px) {
+  /* the phone's rows: the three states on one line that never wraps, what was written and the amount on the next */
+  html[data-scene] .sc-row {
+    grid-template-columns: 5em minmax(0, 1fr) auto;
+    row-gap: 4px;
+  }
+  html[data-scene] .sc-row > span:nth-child(2) {
+    grid-column: 2 / 4;
+    grid-row: 1;
+    white-space: nowrap;
+    overflow: visible;
+  }
+  html[data-scene] .sc-row .sc-written {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  html[data-scene] .sc-row .sc-amt {
+    grid-column: 3;
+    grid-row: 2;
+    grid-template-columns: auto auto;
+  }
+  html[data-scene] .sc-row .sc-day {
+    grid-row: 1;
+  }
+  html[data-scene] .sc-status-stage .sc-status-static {
+    white-space: normal;
+  }
+}
+
+/* the static stack's drawer window is wide enough for the report's drawer chart at its own width */
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-drawer-static {
+  grid-column: 6 / 13;
+}
+/* one grain on the static paper: the section carries it; the copy block's own layer, which the pinned page needs
+   for its panel, would double it here (phone paper measured sigma 2.3 against the desk's 1.5) */
+:is(html:not([data-scene="pinned"]), html[data-reduced]) .sc-paper::before {
+  display: none;
+}

@@ -1,0 +1,1379 @@
+{
+ "schema_version": "actuals.report/2.0",
+ "repo_id": "(redacted)",
+ "repo_path": "(redacted)",
+ "generated_at": "2026-09-08T03:19:31.305Z",
+ "run_id": "20260908T031931Z",
+ "window": {
+  "since": "2026-08-08T01:15:07.178Z",
+  "until": "2026-09-08T03:19:31.305Z"
+ },
+ "tools": [
+  "claude_code"
+ ],
+ "tool_versions": {
+  "claude_code": [
+   "2.1.224",
+   "2.1.226",
+   "2.1.227",
+   "2.1.231",
+   "2.1.251",
+   "2.1.258"
+  ]
+ },
+ "rates_version": "2026-09-08",
+ "provenance_note": "Read from the local transcripts and this repository's git history; token counts priced at list rates; nothing uploaded; no model called.",
+ "headline": {
+  "cost_usd": {
+   "value": 3083.91,
+   "mark": "estimated"
+  },
+  "commits": {
+   "value": 138,
+   "mark": "measured"
+  },
+  "cost_per_commit": {
+   "value": 22.35,
+   "mark": "estimated"
+  },
+  "files_alive": {
+   "alive": 301,
+   "written": 472,
+   "mark": "measured"
+  },
+  "runs_no_fate": {
+   "count": 78,
+   "cost_usd": 202.67,
+   "mark": "measured"
+  },
+  "cost_sessions": {
+   "measured": 0,
+   "priced": 27
+  }
+ },
+ "sessions": [
+  {
+   "id": "d50d395e-4cac-470b-ac69-6324a51feb02",
+   "tool": "claude_code",
+   "date": "2026-08-09",
+   "title": "session d50d395e",
+   "hours": 23.2,
+   "cost_usd": 489.35,
+   "cost_main_usd": 267.01,
+   "cost_agents_usd": 222.34,
+   "cost_mark": "estimated",
+   "commits": 27,
+   "files_written": 162,
+   "files_alive": 103,
+   "files_tracked": 100,
+   "agents": 29,
+   "peak_concurrency": 8,
+   "max_depth": 2,
+   "died": 0,
+   "outcome": {
+    "state": "kept",
+    "note": "100 files tracked in git, 27 commits",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "mostly achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "914266e0-95a5-422f-9ced-b28accc4829e",
+   "tool": "claude_code",
+   "date": "2026-09-05",
+   "title": "session 914266e0",
+   "hours": 38.5,
+   "cost_usd": 391.8,
+   "cost_main_usd": 387.93,
+   "cost_agents_usd": 3.86,
+   "cost_mark": "estimated",
+   "commits": 0,
+   "files_written": 23,
+   "files_alive": 17,
+   "files_tracked": 0,
+   "agents": 2,
+   "peak_concurrency": 1,
+   "max_depth": 1,
+   "died": 0,
+   "outcome": {
+    "state": "on disk",
+    "note": "17 files alive, none tracked",
+    "source": "disk",
+    "mark": "measured"
+   },
+   "claimed": null,
+   "source": "transcript",
+   "compactions": 2
+  },
+  {
+   "id": "980dd188-d50a-454e-9244-97d876cd6863",
+   "tool": "claude_code",
+   "date": "2026-08-24",
+   "title": "session 980dd188",
+   "hours": 156.3,
+   "cost_usd": 362.34,
+   "cost_main_usd": 331.13,
+   "cost_agents_usd": 31.21,
+   "cost_mark": "estimated",
+   "commits": 42,
+   "files_written": 28,
+   "files_alive": 19,
+   "files_tracked": 14,
+   "agents": 9,
+   "peak_concurrency": 5,
+   "max_depth": 2,
+   "died": 0,
+   "outcome": {
+    "state": "kept",
+    "note": "14 files tracked in git, 42 commits",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "mostly achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "bf8ba042-8be4-409c-a7d8-851d5a575522",
+   "tool": "claude_code",
+   "date": "2026-09-05",
+   "title": "session bf8ba042",
+   "hours": 60.9,
+   "cost_usd": 341.36,
+   "cost_main_usd": 341.28,
+   "cost_agents_usd": 0.08,
+   "cost_mark": "estimated",
+   "commits": 0,
+   "files_written": 63,
+   "files_alive": 56,
+   "files_tracked": 0,
+   "agents": 1,
+   "peak_concurrency": 1,
+   "max_depth": 1,
+   "died": 0,
+   "outcome": {
+    "state": "on disk",
+    "note": "56 files alive, none tracked",
+    "source": "disk",
+    "mark": "measured"
+   },
+   "claimed": null,
+   "source": "transcript",
+   "compactions": 3
+  },
+  {
+   "id": "55153ad9-38e2-4d0f-881e-3f940c0fb4f7",
+   "tool": "claude_code",
+   "date": "2026-08-10",
+   "title": "session 55153ad9",
+   "hours": 84.1,
+   "cost_usd": 295.54,
+   "cost_main_usd": 201.49,
+   "cost_agents_usd": 94.05,
+   "cost_mark": "estimated",
+   "commits": 22,
+   "files_written": 64,
+   "files_alive": 23,
+   "files_tracked": 22,
+   "agents": 16,
+   "peak_concurrency": 6,
+   "max_depth": 3,
+   "died": 0,
+   "outcome": {
+    "state": "kept",
+    "note": "22 files tracked in git, 22 commits",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "mostly achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "5951a2c9-66f1-4008-ae6c-d4e88e12e752",
+   "tool": "claude_code",
+   "date": "2026-09-03",
+   "title": "session 5951a2c9",
+   "hours": 62.3,
+   "cost_usd": 270.33,
+   "cost_main_usd": 146.59,
+   "cost_agents_usd": 123.74,
+   "cost_mark": "estimated",
+   "commits": 0,
+   "files_written": 32,
+   "files_alive": 25,
+   "files_tracked": 0,
+   "agents": 18,
+   "peak_concurrency": 3,
+   "max_depth": 1,
+   "died": 0,
+   "outcome": {
+    "state": "on disk",
+    "note": "25 files alive, none tracked",
+    "source": "disk",
+    "mark": "measured"
+   },
+   "claimed": null,
+   "source": "transcript",
+   "compactions": 1
+  },
+  {
+   "id": "1fc4b4ca-6e1a-464d-99ba-83186162cc47",
+   "tool": "claude_code",
+   "date": "2026-09-05",
+   "title": "session 1fc4b4ca",
+   "hours": 11.3,
+   "cost_usd": 137.88,
+   "cost_main_usd": 95.06,
+   "cost_agents_usd": 42.81,
+   "cost_mark": "estimated",
+   "commits": 0,
+   "files_written": 12,
+   "files_alive": 10,
+   "files_tracked": 0,
+   "agents": 22,
+   "peak_concurrency": 4,
+   "max_depth": 1,
+   "died": 0,
+   "outcome": {
+    "state": "on disk",
+    "note": "10 files alive, none tracked",
+    "source": "disk",
+    "mark": "measured"
+   },
+   "claimed": null,
+   "source": "transcript"
+  },
+  {
+   "id": "8481b4ae-ce22-4ca2-94a2-fe20178eb781",
+   "tool": "claude_code",
+   "date": "2026-08-31",
+   "title": "session 8481b4ae",
+   "hours": 41.8,
+   "cost_usd": 112.78,
+   "cost_main_usd": 70.47,
+   "cost_agents_usd": 42.3,
+   "cost_mark": "estimated",
+   "commits": 0,
+   "files_written": 30,
+   "files_alive": 29,
+   "files_tracked": 26,
+   "agents": 18,
+   "peak_concurrency": 4,
+   "max_depth": 1,
+   "died": 0,
+   "outcome": {
+    "state": "kept",
+    "note": "26 files tracked in git, 0 commits",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "mostly achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "f59def3c-2283-4309-9dab-d20755becfae",
+   "tool": "claude_code",
+   "date": "2026-08-25",
+   "title": "session f59def3c",
+   "hours": 35.9,
+   "cost_usd": 96.57,
+   "cost_main_usd": 87.94,
+   "cost_agents_usd": 8.63,
+   "cost_mark": "estimated",
+   "commits": 3,
+   "files_written": 11,
+   "files_alive": 7,
+   "files_tracked": 4,
+   "agents": 3,
+   "peak_concurrency": 3,
+   "max_depth": 1,
+   "died": 0,
+   "outcome": {
+    "state": "kept",
+    "note": "4 files tracked in git, 3 commits",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "mostly achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "3b8db8af-7ede-43ac-a394-3416f1dc785e",
+   "tool": "claude_code",
+   "date": "2026-09-02",
+   "title": "session 3b8db8af",
+   "hours": 56.3,
+   "cost_usd": 91.9,
+   "cost_main_usd": 81.95,
+   "cost_agents_usd": 9.95,
+   "cost_mark": "estimated",
+   "commits": 2,
+   "files_written": 11,
+   "files_alive": 8,
+   "files_tracked": 0,
+   "agents": 5,
+   "peak_concurrency": 2,
+   "max_depth": 1,
+   "died": 0,
+   "outcome": {
+    "state": "kept",
+    "note": "0 files tracked in git, 2 commits",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": null,
+   "source": "transcript"
+  },
+  {
+   "id": "f200588f-2d6c-4f6f-88d4-dc56556e93ba",
+   "tool": "claude_code",
+   "date": "2026-08-31",
+   "title": "session f200588f",
+   "hours": 2,
+   "cost_usd": 90.07,
+   "cost_main_usd": 25.2,
+   "cost_agents_usd": 64.87,
+   "cost_mark": "estimated",
+   "commits": 0,
+   "files_written": 21,
+   "files_alive": 1,
+   "files_tracked": 0,
+   "agents": 31,
+   "peak_concurrency": 20,
+   "max_depth": 3,
+   "died": 3,
+   "outcome": {
+    "state": "on disk",
+    "note": "1 files alive, none tracked",
+    "source": "disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "mostly achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "55887442-ea75-49d5-a14b-f01ef1677f71",
+   "tool": "claude_code",
+   "date": "2026-08-08",
+   "title": "session 55887442",
+   "hours": 7.1,
+   "cost_usd": 80.12,
+   "cost_main_usd": 68.39,
+   "cost_agents_usd": 11.73,
+   "cost_mark": "estimated",
+   "commits": 8,
+   "files_written": 49,
+   "files_alive": 47,
+   "files_tracked": 43,
+   "agents": 7,
+   "peak_concurrency": 2,
+   "max_depth": 1,
+   "died": 0,
+   "outcome": {
+    "state": "kept",
+    "note": "43 files tracked in git, 8 commits",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "mostly achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "3b332331-d3b1-4a8f-9753-3dc9c106ddd7",
+   "tool": "claude_code",
+   "date": "2026-08-12",
+   "title": "session 3b332331",
+   "hours": 27.5,
+   "cost_usd": 77.61,
+   "cost_main_usd": 77.61,
+   "cost_agents_usd": 0,
+   "cost_mark": "estimated",
+   "commits": 9,
+   "files_written": 19,
+   "files_alive": 15,
+   "files_tracked": 14,
+   "agents": 0,
+   "peak_concurrency": 0,
+   "max_depth": 0,
+   "died": 0,
+   "outcome": {
+    "state": "kept",
+    "note": "14 files tracked in git, 9 commits",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "mostly achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "8026d69f-d46c-4cc9-8aeb-803cf76839ef",
+   "tool": "claude_code",
+   "date": "2026-08-13",
+   "title": "session 8026d69f",
+   "hours": 258.6,
+   "cost_usd": 60.13,
+   "cost_main_usd": 60.13,
+   "cost_agents_usd": 0,
+   "cost_mark": "estimated",
+   "commits": 4,
+   "files_written": 17,
+   "files_alive": 16,
+   "files_tracked": 13,
+   "agents": 0,
+   "peak_concurrency": 0,
+   "max_depth": 0,
+   "died": 0,
+   "outcome": {
+    "state": "kept",
+    "note": "13 files tracked in git, 4 commits",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "mostly achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "7ce75a3c-6f09-4276-90c4-e7b42cff066f",
+   "tool": "claude_code",
+   "date": "2026-08-13",
+   "title": "session 7ce75a3c",
+   "hours": 259,
+   "cost_usd": 47.34,
+   "cost_main_usd": 47.34,
+   "cost_agents_usd": 0,
+   "cost_mark": "estimated",
+   "commits": 8,
+   "files_written": 10,
+   "files_alive": 10,
+   "files_tracked": 6,
+   "agents": 0,
+   "peak_concurrency": 0,
+   "max_depth": 0,
+   "died": 0,
+   "outcome": {
+    "state": "kept",
+    "note": "6 files tracked in git, 8 commits",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "mostly achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "6baa9dac-4161-4815-bade-4096a2d1aecc",
+   "tool": "claude_code",
+   "date": "2026-08-08",
+   "title": "session 6baa9dac",
+   "hours": 0.9,
+   "cost_usd": 34.02,
+   "cost_main_usd": 32.94,
+   "cost_agents_usd": 1.08,
+   "cost_mark": "estimated",
+   "commits": 3,
+   "files_written": 3,
+   "files_alive": 3,
+   "files_tracked": 2,
+   "agents": 1,
+   "peak_concurrency": 1,
+   "max_depth": 1,
+   "died": 0,
+   "outcome": {
+    "state": "kept",
+    "note": "2 files tracked in git, 3 commits",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "mostly achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "629b660c-8668-41fa-8155-a6205b6cc2de",
+   "tool": "claude_code",
+   "date": "2026-08-09",
+   "title": "session 629b660c",
+   "hours": 11,
+   "cost_usd": 32.13,
+   "cost_main_usd": 32.13,
+   "cost_agents_usd": 0,
+   "cost_mark": "estimated",
+   "commits": 0,
+   "files_written": 7,
+   "files_alive": 4,
+   "files_tracked": 4,
+   "agents": 0,
+   "peak_concurrency": 0,
+   "max_depth": 0,
+   "died": 0,
+   "outcome": {
+    "state": "kept",
+    "note": "4 files tracked in git, 0 commits",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "mostly achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "356cf0e5-3a6a-42ec-94da-ca58f65dd8db",
+   "tool": "claude_code",
+   "date": "2026-08-26",
+   "title": "session 356cf0e5",
+   "hours": 0.8,
+   "cost_usd": 27.07,
+   "cost_main_usd": 27.07,
+   "cost_agents_usd": 0,
+   "cost_mark": "estimated",
+   "commits": 2,
+   "files_written": 10,
+   "files_alive": 10,
+   "files_tracked": 9,
+   "agents": 0,
+   "peak_concurrency": 0,
+   "max_depth": 0,
+   "died": 0,
+   "outcome": {
+    "state": "kept",
+    "note": "9 files tracked in git, 2 commits",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "fully achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "ae8e9e81-beda-4208-85e5-630feb5405a2",
+   "tool": "claude_code",
+   "date": "2026-08-30",
+   "title": "session ae8e9e81",
+   "hours": 3.4,
+   "cost_usd": 11.66,
+   "cost_main_usd": 11.66,
+   "cost_agents_usd": 0,
+   "cost_mark": "estimated",
+   "commits": 2,
+   "files_written": 5,
+   "files_alive": 5,
+   "files_tracked": 3,
+   "agents": 0,
+   "peak_concurrency": 0,
+   "max_depth": 0,
+   "died": 0,
+   "outcome": {
+    "state": "kept",
+    "note": "3 files tracked in git, 2 commits",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "fully achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "d91c5ceb-ea99-4ebb-9a58-00b452e5caf4",
+   "tool": "claude_code",
+   "date": "2026-08-26",
+   "title": "session d91c5ceb",
+   "hours": 0.4,
+   "cost_usd": 8.2,
+   "cost_main_usd": 5.51,
+   "cost_agents_usd": 2.69,
+   "cost_mark": "estimated",
+   "commits": 0,
+   "files_written": 3,
+   "files_alive": 2,
+   "files_tracked": 0,
+   "agents": 4,
+   "peak_concurrency": 4,
+   "max_depth": 1,
+   "died": 0,
+   "outcome": {
+    "state": "on disk",
+    "note": "2 files alive, none tracked",
+    "source": "disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "fully achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "90828d16-f3a7-4aa6-bd28-ddd0795ac120",
+   "tool": "claude_code",
+   "date": "2026-08-26",
+   "title": "session 90828d16",
+   "hours": 0.3,
+   "cost_usd": 6.67,
+   "cost_main_usd": 6.67,
+   "cost_agents_usd": 0,
+   "cost_mark": "estimated",
+   "commits": 1,
+   "files_written": 6,
+   "files_alive": 6,
+   "files_tracked": 5,
+   "agents": 0,
+   "peak_concurrency": 0,
+   "max_depth": 0,
+   "died": 0,
+   "outcome": {
+    "state": "kept",
+    "note": "5 files tracked in git, 1 commits",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "fully achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "1c74f453-41c1-45d6-81ef-6b7a12f0ce08",
+   "tool": "claude_code",
+   "date": "2026-08-26",
+   "title": "session 1c74f453",
+   "hours": 0.7,
+   "cost_usd": 5.67,
+   "cost_main_usd": 5.67,
+   "cost_agents_usd": 0,
+   "cost_mark": "estimated",
+   "commits": 1,
+   "files_written": 2,
+   "files_alive": 1,
+   "files_tracked": 1,
+   "agents": 0,
+   "peak_concurrency": 0,
+   "max_depth": 0,
+   "died": 0,
+   "outcome": {
+    "state": "kept",
+    "note": "1 files tracked in git, 1 commits",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "fully achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "3f4673ae-9629-4357-b527-dbf9942f19f5",
+   "tool": "claude_code",
+   "date": "2026-08-24",
+   "title": "session 3f4673ae",
+   "hours": 1.4,
+   "cost_usd": 5.54,
+   "cost_main_usd": 5.54,
+   "cost_agents_usd": 0,
+   "cost_mark": "estimated",
+   "commits": 2,
+   "files_written": 1,
+   "files_alive": 1,
+   "files_tracked": 1,
+   "agents": 0,
+   "peak_concurrency": 0,
+   "max_depth": 0,
+   "died": 0,
+   "outcome": {
+    "state": "kept",
+    "note": "1 files tracked in git, 2 commits",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "fully achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "c7b0fa2f-248e-46ff-bb8a-21536820ab3f",
+   "tool": "claude_code",
+   "date": "2026-08-24",
+   "title": "session c7b0fa2f",
+   "hours": 0.1,
+   "cost_usd": 5.16,
+   "cost_main_usd": 5.16,
+   "cost_agents_usd": 0,
+   "cost_mark": "estimated",
+   "commits": 2,
+   "files_written": 3,
+   "files_alive": 3,
+   "files_tracked": 3,
+   "agents": 0,
+   "peak_concurrency": 0,
+   "max_depth": 0,
+   "died": 0,
+   "outcome": {
+    "state": "kept",
+    "note": "3 files tracked in git, 2 commits",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": null,
+   "source": "transcript"
+  },
+  {
+   "id": "ced36551-0da3-4cb1-91f7-c47c1b9976aa",
+   "tool": "claude_code",
+   "date": "2026-08-08",
+   "title": "session ced36551",
+   "hours": 0.5,
+   "cost_usd": 2.67,
+   "cost_main_usd": 2.67,
+   "cost_agents_usd": 0,
+   "cost_mark": "estimated",
+   "commits": 0,
+   "files_written": 0,
+   "files_alive": 0,
+   "files_tracked": 0,
+   "agents": 0,
+   "peak_concurrency": 0,
+   "max_depth": 0,
+   "died": 0,
+   "outcome": {
+    "state": "no trace",
+    "note": "no file survives, no commit",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "mostly achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  },
+  {
+   "id": "69bcaff7-7c09-41ac-b2b6-ed11e27c8f77",
+   "tool": "claude_code",
+   "date": "2026-08-31",
+   "title": "session 69bcaff7",
+   "hours": 0,
+   "cost_usd": 0,
+   "cost_main_usd": 0,
+   "cost_agents_usd": 0,
+   "cost_mark": "estimated",
+   "commits": 0,
+   "files_written": 0,
+   "files_alive": 0,
+   "files_tracked": 0,
+   "agents": 0,
+   "peak_concurrency": 0,
+   "max_depth": 0,
+   "died": 0,
+   "outcome": {
+    "state": "no trace",
+    "note": "no file survives, no commit",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": null,
+   "source": "transcript"
+  },
+  {
+   "id": "df40ed58-2bab-4ec4-b266-dfc4100b639a",
+   "tool": "claude_code",
+   "date": "2026-08-13",
+   "title": "session df40ed58",
+   "hours": 0.1,
+   "cost_usd": 0,
+   "cost_main_usd": 0,
+   "cost_agents_usd": 0,
+   "cost_mark": "estimated",
+   "commits": 0,
+   "files_written": 0,
+   "files_alive": 0,
+   "files_tracked": 0,
+   "agents": 0,
+   "peak_concurrency": 0,
+   "max_depth": 0,
+   "died": 0,
+   "outcome": {
+    "state": "no trace",
+    "note": "no file survives, no commit",
+    "source": "git and disk",
+    "mark": "measured"
+   },
+   "claimed": {
+    "outcome": "not achieved",
+    "goal": "",
+    "source": "claimed by /insights",
+    "mark": "estimated"
+   },
+   "source": "transcript"
+  }
+ ],
+ "burn": {
+  "tree": {
+   "peaks": [
+    {
+     "date": "2026-08-31",
+     "session_id": "f200588f-2d6c-4f6f-88d4-dc56556e93ba",
+     "peak": 20,
+     "max_depth": 3
+    },
+    {
+     "date": "2026-08-09",
+     "session_id": "d50d395e-4cac-470b-ac69-6324a51feb02",
+     "peak": 8,
+     "max_depth": 2
+    },
+    {
+     "date": "2026-08-10",
+     "session_id": "55153ad9-38e2-4d0f-881e-3f940c0fb4f7",
+     "peak": 6,
+     "max_depth": 3
+    },
+    {
+     "date": "2026-08-24",
+     "session_id": "980dd188-d50a-454e-9244-97d876cd6863",
+     "peak": 5,
+     "max_depth": 2
+    },
+    {
+     "date": "2026-09-05",
+     "session_id": "1fc4b4ca-6e1a-464d-99ba-83186162cc47",
+     "peak": 4,
+     "max_depth": 1
+    },
+    {
+     "date": "2026-08-31",
+     "session_id": "8481b4ae-ce22-4ca2-94a2-fe20178eb781",
+     "peak": 4,
+     "max_depth": 1
+    },
+    {
+     "date": "2026-08-26",
+     "session_id": "d91c5ceb-ea99-4ebb-9a58-00b452e5caf4",
+     "peak": 4,
+     "max_depth": 1
+    },
+    {
+     "date": "2026-09-03",
+     "session_id": "5951a2c9-66f1-4008-ae6c-d4e88e12e752",
+     "peak": 3,
+     "max_depth": 1
+    }
+   ],
+   "timeline": {
+    "session_id": "f200588f-2d6c-4f6f-88d4-dc56556e93ba",
+    "date": "2026-08-31",
+    "title": "session f200588f",
+    "start": "2026-08-31T13:16:39.082Z",
+    "end": "2026-08-31T15:13:50.844Z",
+    "peak": 20,
+    "peak_at": "2026-08-31T14:56:17.129Z",
+    "died": 3,
+    "spawned_by_agents": 16,
+    "runs": [
+     {
+      "id": "ae47ddf7931a327d3",
+      "start": "2026-08-31T13:16:39.082Z",
+      "end": "2026-08-31T13:22:09.099Z",
+      "depth": 1,
+      "fate": "landed_untracked"
+     },
+     {
+      "id": "a11abf2195e5d2f40",
+      "start": "2026-08-31T13:16:48.295Z",
+      "end": "2026-08-31T13:23:45.225Z",
+      "depth": 1,
+      "fate": "landed_untracked"
+     },
+     {
+      "id": "a707f8aedf43fb97e",
+      "start": "2026-08-31T13:16:58.175Z",
+      "end": "2026-08-31T13:23:29.882Z",
+      "depth": 1,
+      "fate": "finished_unlanded"
+     },
+     {
+      "id": "a4bdd2f41aa4d2988",
+      "start": "2026-08-31T13:26:04.236Z",
+      "end": "2026-08-31T13:33:45.275Z",
+      "depth": 1,
+      "fate": "landed_untracked"
+     },
+     {
+      "id": "a472eed26c70a34cb",
+      "start": "2026-08-31T13:42:00.369Z",
+      "end": "2026-08-31T13:54:38.256Z",
+      "depth": 1,
+      "fate": "landed_untracked"
+     },
+     {
+      "id": "a0a4153f7334cf687",
+      "start": "2026-08-31T13:42:09.721Z",
+      "end": "2026-08-31T13:55:42.577Z",
+      "depth": 1,
+      "fate": "finished_unlanded"
+     },
+     {
+      "id": "a3620d1775839b71a",
+      "start": "2026-08-31T13:57:30.984Z",
+      "end": "2026-08-31T14:11:42.495Z",
+      "depth": 1,
+      "fate": "finished_unlanded"
+     },
+     {
+      "id": "a9cef7d0d06dbe171",
+      "start": "2026-08-31T13:57:46.515Z",
+      "end": "2026-08-31T14:12:45.027Z",
+      "depth": 1,
+      "fate": "finished_unlanded"
+     },
+     {
+      "id": "abf16673396b5b380",
+      "start": "2026-08-31T13:58:01.334Z",
+      "end": "2026-08-31T14:17:49.226Z",
+      "depth": 1,
+      "fate": "finished_unlanded"
+     },
+     {
+      "id": "a40a1487a310087c6",
+      "start": "2026-08-31T13:58:19.046Z",
+      "end": "2026-08-31T14:11:46.276Z",
+      "depth": 1,
+      "fate": "landed_untracked"
+     },
+     {
+      "id": "a018fd31310789b00",
+      "start": "2026-08-31T14:20:01.567Z",
+      "end": "2026-08-31T14:51:00.174Z",
+      "depth": 1,
+      "fate": "finished_unlanded"
+     },
+     {
+      "id": "a79782acabb3b6937",
+      "start": "2026-08-31T14:51:41.374Z",
+      "end": "2026-08-31T15:10:33.059Z",
+      "depth": 1,
+      "fate": "died"
+     },
+     {
+      "id": "ac98797f5ecc79614",
+      "start": "2026-08-31T14:51:57.603Z",
+      "end": "2026-08-31T15:10:46.733Z",
+      "depth": 1,
+      "fate": "unknown"
+     },
+     {
+      "id": "ad107ef2c1821d90d",
+      "start": "2026-08-31T14:52:13.137Z",
+      "end": "2026-08-31T15:08:39.796Z",
+      "depth": 1,
+      "fate": "unknown"
+     },
+     {
+      "id": "a861fd3524750d3be",
+      "start": "2026-08-31T14:52:29.555Z",
+      "end": "2026-08-31T15:05:54.657Z",
+      "depth": 1,
+      "fate": "finished_unlanded"
+     },
+     {
+      "id": "a73af800c052f800a",
+      "start": "2026-08-31T14:52:56.698Z",
+      "end": "2026-08-31T15:10:48.121Z",
+      "depth": 2,
+      "fate": "unknown"
+     },
+     {
+      "id": "a4dee433e92f8cd5e",
+      "start": "2026-08-31T14:53:13.127Z",
+      "end": "2026-08-31T15:07:21.589Z",
+      "depth": 2,
+      "fate": "landed_untracked"
+     },
+     {
+      "id": "a8e61677ea6d34672",
+      "start": "2026-08-31T14:53:35.911Z",
+      "end": "2026-08-31T15:10:50.517Z",
+      "depth": 2,
+      "fate": "unknown"
+     },
+     {
+      "id": "afec0cbe7ea0e2827",
+      "start": "2026-08-31T14:53:47.551Z",
+      "end": "2026-08-31T15:10:43.503Z",
+      "depth": 3,
+      "fate": "unknown"
+     },
+     {
+      "id": "a0277714c672e9dac",
+      "start": "2026-08-31T14:53:51.113Z",
+      "end": "2026-08-31T15:09:41.593Z",
+      "depth": 2,
+      "fate": "died"
+     },
+     {
+      "id": "a0eaea5e9205e6690",
+      "start": "2026-08-31T14:54:09.130Z",
+      "end": "2026-08-31T15:08:48.379Z",
+      "depth": 3,
+      "fate": "unknown"
+     },
+     {
+      "id": "aecf8d1cae1aee615",
+      "start": "2026-08-31T14:54:26.779Z",
+      "end": "2026-08-31T15:04:12.258Z",
+      "depth": 3,
+      "fate": "finished_unlanded"
+     },
+     {
+      "id": "ab6c87fc1a22aa61a",
+      "start": "2026-08-31T14:54:28.375Z",
+      "end": "2026-08-31T15:10:48.919Z",
+      "depth": 2,
+      "fate": "unknown"
+     },
+     {
+      "id": "a9b7f465b5c3fcf94",
+      "start": "2026-08-31T14:54:45.820Z",
+      "end": "2026-08-31T15:09:52.853Z",
+      "depth": 3,
+      "fate": "unknown"
+     },
+     {
+      "id": "a39a00a8d8762aab2",
+      "start": "2026-08-31T14:54:47.747Z",
+      "end": "2026-08-31T15:13:50.844Z",
+      "depth": 2,
+      "fate": "finished_unlanded"
+     },
+     {
+      "id": "a123ccc34a1b83261",
+      "start": "2026-08-31T14:55:07.232Z",
+      "end": "2026-08-31T15:11:11.871Z",
+      "depth": 3,
+      "fate": "died"
+     },
+     {
+      "id": "a1ccff60a3d2a182f",
+      "start": "2026-08-31T14:55:22.926Z",
+      "end": "2026-08-31T15:08:42.033Z",
+      "depth": 2,
+      "fate": "finished_unlanded"
+     },
+     {
+      "id": "ae4e4e63c124d7fd0",
+      "start": "2026-08-31T14:55:37.857Z",
+      "end": "2026-08-31T15:04:09.820Z",
+      "depth": 3,
+      "fate": "finished_unlanded"
+     },
+     {
+      "id": "adccc7cbd621e6e38",
+      "start": "2026-08-31T14:55:38.782Z",
+      "end": "2026-08-31T15:10:25.243Z",
+      "depth": 2,
+      "fate": "unknown"
+     },
+     {
+      "id": "a33d49923a093e04e",
+      "start": "2026-08-31T14:55:56.330Z",
+      "end": "2026-08-31T15:10:44.330Z",
+      "depth": 3,
+      "fate": "finished_unlanded"
+     },
+     {
+      "id": "a4f818315771e6fa6",
+      "start": "2026-08-31T14:56:17.129Z",
+      "end": "2026-08-31T15:06:59.124Z",
+      "depth": 3,
+      "fate": "finished_unlanded"
+     }
+    ]
+   },
+   "depth_histogram": {
+    "1": 140,
+    "2": 17,
+    "3": 9
+   },
+   "spawned_by_agents": 26,
+   "died": {
+    "count": 3,
+    "cost_usd": 9.18
+   },
+   "mark": "measured"
+  },
+  "fate": {
+   "by_state": {
+    "finished_unlanded": 61,
+    "unknown": 17,
+    "landed_untracked": 32,
+    "landed_tracked": 53,
+    "died": 3
+   },
+   "unlandable_count": 78,
+   "unlandable_cost_usd": 202.67,
+   "mark": "measured"
+  },
+  "rereads": {
+   "reads": 1753,
+   "rereads": 319,
+   "top": [
+    {
+     "path": "(redacted)",
+     "n": 65
+    },
+    {
+     "path": "(redacted)",
+     "n": 15
+    },
+    {
+     "path": "(redacted)",
+     "n": 13
+    },
+    {
+     "path": "(redacted)",
+     "n": 13
+    },
+    {
+     "path": "(redacted)",
+     "n": 11
+    },
+    {
+     "path": "(redacted)",
+     "n": 8
+    },
+    {
+     "path": "(redacted)",
+     "n": 7
+    },
+    {
+     "path": "(redacted)",
+     "n": 6
+    }
+   ],
+   "mark": "measured",
+   "note": "Counted across sessions from the transcripts. Claude Code's /usage shows the in-session cache view; this is the same habit seen across every session."
+  }
+ },
+ "models": [
+  {
+   "model": "claude-opus-5",
+   "runs": 123,
+   "cost_usd": 575.61,
+   "per_run_usd": 4.68,
+   "finished": 104,
+   "landed": 71,
+   "kept_per_usd": 0.085,
+   "rate_mark": "estimated"
+  },
+  {
+   "model": "claude-fable-5",
+   "runs": 23,
+   "cost_usd": 56.6,
+   "per_run_usd": 2.46,
+   "finished": 23,
+   "landed": 3,
+   "kept_per_usd": 0,
+   "rate_mark": "estimated"
+  },
+  {
+   "model": "claude-sonnet-5",
+   "runs": 17,
+   "cost_usd": 25.43,
+   "per_run_usd": 1.5,
+   "finished": 16,
+   "landed": 8,
+   "kept_per_usd": 0.157,
+   "rate_mark": "estimated"
+  },
+  {
+   "model": "claude-opus-4-8",
+   "runs": 1,
+   "cost_usd": 1.36,
+   "per_run_usd": 1.36,
+   "finished": 1,
+   "landed": 1,
+   "kept_per_usd": 0,
+   "rate_mark": "estimated"
+  },
+  {
+   "model": "claude-haiku-4-5",
+   "runs": 2,
+   "cost_usd": 0.35,
+   "per_run_usd": 0.18,
+   "finished": 2,
+   "landed": 2,
+   "kept_per_usd": 0,
+   "rate_mark": "estimated"
+  }
+ ],
+ "fixes": [
+  {
+   "id": "f1-cap-tree",
+   "kind": "settings_env",
+   "title": "Cap the agent tree at what your machine survived",
+   "why": "On 2026-08-09, 8 concurrent runs at depth 2 finished with nothing dying; that one session sets both numbers. On 2026-08-31, 31 runs peaked at 20 concurrent at depth 3 and 3 died. Claude Code defaults are 20 concurrent and depth 3.",
+   "target_file": "(redacted)",
+   "snippet": "(redacted)",
+   "would_have_blocked": "would have held 12 of the 20 concurrent spawns on 2026-08-31",
+   "available": true
+  },
+  {
+   "id": "f2-reports-land",
+   "kind": "claude_md_rule_and_hook",
+   "title": "Have every agent leave a report on disk",
+   "why": "78 finished runs left no trace on disk (about $203 at list rates). If you want those runs to be measurable, this asks your agents to write a short report file per run so their work survives the session. Opt in when you have a folder for them: run `actuals fix f2-reports-land`.",
+   "target_file": "(redacted)",
+   "snippet": "(redacted)",
+   "would_have_blocked": null,
+   "available": true,
+   "opt_in": true
+  },
+  {
+   "id": "f4-git-ai",
+   "kind": "suggestion",
+   "title": "Line-level survival across rebases",
+   "why": "Files alive is file-level. Git AI notes add line-level attribution; Actuals reads them when present.",
+   "target_file": "(redacted)",
+   "snippet": "(redacted)",
+   "would_have_blocked": null,
+   "available": false
+  }
+ ],
+ "share": {
+  "period": "2026-08-08 to 2026-09-05",
+  "agent_runs": 166,
+  "commits": 138,
+  "cost_per_commit": 22.35,
+  "files_alive_pct": 64,
+  "biggest_tree": 20,
+  "runs_no_fate": 78
+ },
+ "method": [
+  "Sessions and agent runs are read from the local transcript files; nothing is uploaded and no model is called.",
+  "Usage is counted once per API request (every content block of a response is its own transcript line with the same usage).",
+  "Tokens are priced at list rates from rates.json; 5-minute and 1-hour cache writes are priced separately.",
+  "A commit counts as made inside a session only when its author time is inside the session window, the session ran inside this repository, and the session issued a git commit within 5 minutes.",
+  "A file counts as alive when the path the agent wrote still exists; tracked when git ls-files lists it.",
+  "Fate is decided by fixed rules, first match wins; an unknown fate is never counted as kept.",
+  "Peak concurrency is the largest number of agent runs whose start and end times overlap inside one session.",
+  "The only network calls are actuals login, logout and share --hosted, each made only when you run it; the only host they reach is getactuals.net (or the ACTUALS_HOST you set), over a secure TLS connection, and each names what it sends before it sends it.",
+  "actuals watch is on: Claude Code's statusline and hooks append one line per event to a local live ledger; rows that exist only there are marked live."
+ ],
+ "limitations": [
+  "Compaction: a compacted session keeps its usage but loses the turn-by-turn record before the compaction point. Reduced when watch is on: 6 compaction points recorded live so far.",
+  "Resumed sessions continue the same transcript; a resume after a long gap stretches the session window.",
+  "Sidechains inside a main transcript are counted with the session, not as separate runs.",
+  "Worktrees: a session whose cwd is a worktree joins to that worktree's git history only.",
+  "A cwd change mid-session attributes the whole session to the repository of its first recorded cwd.",
+  "Plan users pay a flat fee; dollars here are list rates and show the size of the work, not the bill.",
+  "Unknown model ids are priced at a family rate and marked assumed.",
+  "Clock skew between the transcript writer and git can move a commit across the 5-minute attribution window.",
+  "Transcripts the tool has cleaned up are gone; this report only sees what is on disk today. Reduced when watch is on: 0 sessions in this report exist only in the live ledger.",
+  "Codex sessions are not read yet (first pass is Claude Code only).",
+  "Transcript formats are internal to each tool and can change on any release; readers are pinned to versions with fixtures.",
+  "This report cannot see whether a run changed a decision. That is the label, and only you can give it."
+ ],
+ "marks_legend": {
+  "measured": "read from the local transcripts and this repository's git history today",
+  "estimated": "token counts priced at list rates",
+  "founder-labelled": "an outcome only you can state; taken from your label, not inferred",
+  "illustrative": "a mock of a surface that does not exist yet",
+  "assumed": "a rate or parameter that is not on a public price page"
+ },
+ "fate_states": [
+  "still_running",
+  "died",
+  "founder_labelled",
+  "landed_tracked",
+  "landed_untracked",
+  "finished_unlanded",
+  "unknown"
+ ],
+ "live": {
+  "watching": true,
+  "events": 4794,
+  "sessions_live_only": 0,
+  "compactions": 6,
+  "first_event": "2026-09-05T14:23:18.952Z"
+ },
+ "tokens_spent_making_this": 0,
+ "left_machine": "nothing"
+}

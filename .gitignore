@@ -1,0 +1,26 @@
+node_modules/
+dist/
+coverage/
+.DS_Store
+.vscode/
+.idea/
+.vercel/
+.env
+.env.*
+# Claude Code: only settings.json (the model and the subagent caps) is tracked; personal
+# overrides, runtime state, and vendored skills or agents never are
+.claude/*
+!.claude/settings.json
+# Session reports, plans and reviews are written locally and never tracked
+reports/
+# Private acceptance fixture (your own transcripts) never enters the repo
+eval/private/
+# Engine runtime output
+.actuals/
+
+# the website (site/) keeps its own build output and dependencies
+site/node_modules/
+site/.next/
+site/.vercel/
+site/.env*.local
+site/tsconfig.tsbuildinfo

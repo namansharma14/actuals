@@ -1,0 +1,1 @@
+Actuals: see what your agents actually shipped. The landing's first screen, with one real report open beside it.
