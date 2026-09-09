@@ -4,87 +4,84 @@
 
 ![npx actuals in a terminal: one command, then the report opens](assets/actuals-run.gif)
 
-See what your coding agents actually shipped. Reads your own Claude Code sessions and your
-git history, on your machine.
+See what your coding agents actually shipped. Actuals reads the Claude Code sessions already
+on your machine and your git history, and reports what the agents left behind: what was kept,
+what died, and what it cost. One command, about a second, nothing leaves the computer.
+
+## Run it
+
+In any repository where you have used Claude Code (Node 20 or newer):
 
 ```
 npx actuals
 ```
 
-Reads your Claude Code transcripts and this repository's git history, locally, and shows what
-the agents actually left behind: what was kept, what got thrown away, what quietly died, and
-what it cost. Tokens at list rates, commits made inside
-sessions, cost per commit, which files agents wrote are still on disk, which agent runs
-died or produced nothing you can find, how tall your agent trees got, and which model gave
-you kept work per dollar. Then it derives fixes from those numbers and applies them with one
-confirm.
+The report opens in your browser on 127.0.0.1. To keep a live line in Claude Code's status
+bar while you work:
 
-Nothing leaves your machine. No account, no upload, no model call. Tokens spent making the
-report: 0.
+```
+npx actuals watch
+```
 
-## What you get
+## How to use it
 
-- The report, opened as a local app on `127.0.0.1` (loopback only): every number marked
-  `measured`, `estimated`, `assumed`, or `your label`, and the rule that produced it.
-  A picker re-runs on a date range or a set of sessions; click a session for its files
-  with their fate, commits, agent runs drawn to time, the `/insights` claim, and your
-  label; the tallest-tree instrument draws any session; each fix shows its real diff and
-  applies on one click, with undo beside it. The same report is written as a static file
-  at `~/.actuals/<repo>/runs/<run>/report.html`; `actuals export` copies it out.
-- Fixes derived from your own history: cap the agent tree at what your machine survived,
-  make every agent report land on disk, run a blind paired model test.
-- `actuals share` for an aggregates-only card. `actuals weekly` for the Monday view.
-- `actuals label` for the one column nobody else can fill: whether it mattered.
+1. **Read the top line.** The first row is the whole story for the period: what the tokens
+   cost at list rates, how many commits the sessions made, the cost per commit, how many of
+   the files the agents wrote are still alive, and how many agent runs finished with nothing
+   to show. Anything marked `MEASURED` was read from transcripts and git; `ESTIMATED` means
+   priced at list rates. Change the dates and re-run; it takes about a second.
+2. **Pick which sessions count.** Two scopes: this repository, or every project on the
+   machine. The sessions control lets you untick any session, so one runaway night does not
+   colour a whole month.
+3. **Click a session.** It opens in a drawer: every agent run drawn to time, with its model,
+   its minutes, its cost, and what became of its work. Click a run to see which files it
+   wrote and how many git still tracks. `landed tracked` means the files are in git now; a
+   `died` run stopped without returning.
+4. **Say whether it mattered.** The tool measures what happened on disk and in git; only you
+   know whether the work mattered. Label the session in one click and add a line on why.
+   Labels stay on this machine and are never overwritten.
+5. **Watch a session live.** The `LIVE` tab draws the session running right now: agents
+   appear as they start, go warm the moment one dies, and the cost ticks. It works once
+   `npx actuals watch` has installed the hooks.
+6. **Apply a fix, or undo it.** The fixes are written from your own numbers. The first caps
+   the agent tree at what your machine survived, as two settings in `.claude/settings.json`.
+   Every fix shows its reason and the exact change before anything is written; one command
+   restores every file byte for byte.
+7. **Share the card.** Three numbers and the curve as a 1080 by 1080 PNG, aggregates only:
+   no file names, no prompts, no code. Copy it, save it, or post it.
+
+## Terminal or VS Code
+
+Same command, same report. The one difference is the live line: in a terminal,
+`npx actuals watch` puts one line in Claude Code's status bar (cost this session at list
+rates, context used, agents alive against the cap, any that died). The VS Code extension has
+no status bar, so the same command opens the Live tab instead and prints the address; pin it
+with `Simple Browser: Show`.
 
 ## Commands
 
 ```
-actuals run [--since 30d] [--all-projects] [--redact] [--generous] [--no-open]
-actuals app [--no-open] [--port N]   serve the latest report on 127.0.0.1 without re-running
-actuals export [--out <file>]        write the static report file; --ledger for the ledger as NDJSON
-actuals watch [--no-hud] [--yes]     always-on status line: a HUD plus hooks writing a local live ledger
-actuals hud --serve [--no-open]      open the live window (pin it beside the editor or in VS Code Simple Browser)
-actuals unwatch                      remove them, byte-identical
-actuals fix [--dry-run] [--yes]      show derived fixes, apply on confirm
-actuals undo <fix-id>                restore byte-identical
-actuals share                        the aggregates-only card as share.svg and share.txt
-actuals share --hosted [--yes]       upload the redacted report for a share link; shows what leaves first (works once the site update ships)
-actuals login                        connect this computer to your account, no key to copy (works once the site update ships)
-actuals logout                       disconnect this computer, remove the stored key (works once the site update ships)
-actuals licence <key>                store a licence key by hand (headless or CI)
-actuals weekly · actuals label <id> kept|retired|dead|open "<note>"
-actuals doctor                       what it can see and what it cannot
+npx actuals                 read this repository's sessions, write the report, open the app
+npx actuals --all-projects  the same across every project on the machine
+npx actuals watch           install the status line and the hooks that feed the Live tab
+npx actuals fix             apply the default fix after one confirm; undo <fix-id> restores it
+npx actuals share           write the card PNG and the post text, locally
+npx actuals doctor          say what it can read on this machine and confirm nothing touches the network
 ```
 
-`actuals watch` installs, with one confirm and a shown diff, a Claude Code statusline
-command and a few hooks. The statusline shows cost at list rates, context, agents against
-the cap, deaths and compactions; every event appends one line to a live ledger under
-`~/.actuals/<repo>/live/`. The report merges it with the transcripts, marks rows that exist
-only there, and says how far compaction and transcript cleanup stopped being blind spots.
-Where the statusline recorded Claude Code's own cost for a session, the report uses that
-figure for the session and marks it measured; every other session is priced at list rates,
-and the headline says how many of each.
-No daemon. Nothing leaves the machine.
+## What leaves your machine
 
-The one thing that can ever leave the machine is a hosted run, and only when you ask:
-`actuals share --hosted` (or "share as a page" in the app) re-runs the report redacted,
-lists exactly what would be sent (no prompt, path, file name, commit message, code, title
-or goal), waits for one confirm, and posts it with your licence key. Five are free for the
-life of the account.
-
-The app binds `127.0.0.1` on a random port and answers only its own host, with a
-per-launch token on every write; it stops a few minutes after the page closes. Nothing
-leaves the machine: an automated check proves that no connection other than to your own
-machine is ever opened.
+Nothing. The report, the labels and the fixes are files in your repository and your home
+folder. No account, no upload, no model call. Tokens spent making the report: 0.
 
 ## How it counts
 
 Claude Code writes one transcript line per content block and repeats the request's usage
 on each line; Actuals counts usage once per request. Counters that sum every line (the
-`/insights` session-meta files do) report roughly four times the output tokens. A commit is "made inside a session"
-only when its author time is inside the session window, the session ran in this
-repository, and the session issued `git commit` within five minutes. Unknown fate is never
-counted as kept. Accuracy checks in `ACCURACY.md`.
+`/insights` session-meta files do) report roughly four times the output tokens. A commit is
+"made inside a session" only when its author time is inside the session window, the
+session ran in this repository, and the session issued `git commit` within five minutes.
+Unknown fate is never counted as kept. Accuracy checks in `ACCURACY.md`.
 
 First pass reads Claude Code. Codex is next.
 
@@ -92,5 +89,4 @@ First pass reads Claude Code. Codex is next.
 
 Source available under the Functional Source License, FSL-1.1-ALv2 (see `LICENSE.md`):
 read it, run it, change it, and use it for anything except making a competing product or
-service. Each version converts to Apache-2.0 two years after its release. The 0.1.0 already
-on npm was published under Apache-2.0 and stays that way.
+service. Each version converts to Apache-2.0 two years after its release.
