@@ -12,7 +12,7 @@ import { read as readClaudeCode } from "./read/claude_code/index.js";
 import { mergeLive } from "./read/live.js";
 import { isWatching, liveSummary } from "./watch/index.js";
 import { renderHtml } from "./render/html.js";
-import { renderShareSvg, renderShareText } from "./render/share.js";
+import { renderStickerSvg, stickerNumbers } from "./render/sticker.js";
 import { buildReport } from "./report/index.js";
 import { emptyLedger, type Ledger } from "./schema/ledger.js";
 import type { Report } from "./schema/socket.js";
@@ -60,8 +60,8 @@ export async function runPipeline(scopeIn: Scope, opts: { now?: Date; stateDir?:
   await stage("render", () => {
     writeFileSync(path.join(dir, "report.json"), JSON.stringify(report, null, 2));
     writeFileSync(htmlPath, renderHtml(report, { redact: scope.redact }));
-    writeFileSync(path.join(dir, "share.svg"), renderShareSvg(report));
-    writeFileSync(path.join(dir, "share.txt"), renderShareText(report));
+    writeFileSync(path.join(dir, "share.svg"), renderStickerSvg(report));
+    writeFileSync(path.join(dir, "share.txt"), stickerNumbers(report).text);
     return 4;
   }, (n) => n);
   writeLedger(stateDir, ledger, { updateLatest: opts.updateLatest });

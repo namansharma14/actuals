@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { CLIENT_JS, stickerData, xIntentUrl } from "../src/render/app.js";
+import { CLIENT_JS, xIntentUrl } from "../src/render/app.js";
+import { stickerData } from "../src/render/sticker.js";
 import { ReportSchema } from "../src/schema/socket.js";
 
 const report = ReportSchema.parse(JSON.parse(readFileSync(new URL("../eval/fixtures/socket/report.fixture.json", import.meta.url), "utf8")));

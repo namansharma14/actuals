@@ -28,8 +28,9 @@ let cached: RatesTable | null = null;
 export function loadRates(): RatesTable {
   if (cached) return cached;
   const here = path.dirname(fileURLToPath(import.meta.url));
-  // src/rates/index.ts → ../../rates.json ; dist/cli.js → ../rates.json
-  const candidates = [path.join(here, "..", "..", "rates.json"), path.join(here, "..", "rates.json"), path.join(process.cwd(), "rates.json")];
+  // src/rates/index.ts → ../../rates.json ; dist/cli.js → ../rates.json ; the copy behind
+  // watch keeps rates.json beside cli.js, so the same folder counts too
+  const candidates = [path.join(here, "..", "..", "rates.json"), path.join(here, "..", "rates.json"), path.join(here, "rates.json"), path.join(process.cwd(), "rates.json")];
   for (const c of candidates) {
     try {
       cached = JSON.parse(readFileSync(c, "utf8")) as RatesTable;

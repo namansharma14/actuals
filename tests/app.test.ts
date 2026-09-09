@@ -47,7 +47,7 @@ describe("local app (D13)", () => {
     const page = await (await get(app, "/")).text();
     expect(page).toContain("<script>");
     expect(page).toContain(app.token);
-    expect(page.replace(/<a class="btn" id="stk-x" href="[^"]*"/, "").toLowerCase()).not.toContain("http");
+    expect(page.replace(/<a class="btn" id="stk-x" href="[^"]*"/, "").replace(/http%3A%2F%2Fwww\.w3\.org%2F2000%2Fsvg|http:\/\/www\.w3\.org\/2000\/svg/g, "").toLowerCase()).not.toContain("http");
     expect(page).toContain('<canvas id="sticker"');
     expect(page).not.toContain("—");
     expect(page).toContain('id="picker"');

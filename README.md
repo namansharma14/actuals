@@ -1,5 +1,9 @@
 # Actuals
 
+![The report actuals writes, opened as a local app on 127.0.0.1, redacted](assets/report.png)
+
+![npx actuals in a terminal: one command, then the report opens](assets/actuals-run.gif)
+
 See what your coding agents actually shipped. Reads your own Claude Code sessions and your
 git history, on your machine.
 

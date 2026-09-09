@@ -2,7 +2,8 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { ReportSchema, type Report } from "../src/schema/socket.js";
 import { renderHtml } from "../src/render/html.js";
-import { renderShareSvg, renderShareText } from "../src/render/share.js";
+import { renderShareText } from "../src/render/share.js";
+import { renderStickerSvg } from "../src/render/sticker.js";
 
 const FIXTURE_URL = new URL("../eval/fixtures/socket/report.fixture.json", import.meta.url);
 const raw = JSON.parse(readFileSync(FIXTURE_URL, "utf8"));
@@ -22,7 +23,7 @@ describe("eval/fixtures/socket/report.fixture.json", () => {
 const report: Report = ReportSchema.parse(raw);
 const html = renderHtml(report, { redact: false });
 const redactedHtml = renderHtml(report, { redact: true });
-const shareSvg = renderShareSvg(report);
+const shareSvg = renderStickerSvg(report);
 const shareText = renderShareText(report);
 
 describe("renderHtml", () => {
@@ -113,7 +114,8 @@ describe("renderHtml in app mode", () => {
     expect(appHtml).toContain("sessions with trees, click to draw");
     // the one absolute URL is the X post intent the user clicks; nothing else is network-shaped
     expect(appHtml).toMatch(/<a class="btn" id="stk-x" href="https:\/\/x\.com\/intent\/post\?text=[^"]+" target="_blank" rel="noopener noreferrer">/);
-    expect(appHtml.replace(/<a class="btn" id="stk-x" href="[^"]*"/, "").toLowerCase()).not.toContain("http");
+    // the card's XML namespace is an identifier, not an address; nothing fetches it
+    expect(appHtml.replace(/<a class="btn" id="stk-x" href="[^"]*"/, "").replace(/http%3A%2F%2Fwww\.w3\.org%2F2000%2Fsvg|http:\/\/www\.w3\.org\/2000\/svg/g, "").toLowerCase()).not.toContain("http");
     expect(appHtml).toContain('<canvas id="sticker"');
     expect(appHtml).not.toContain("@import");
     expect(appHtml).not.toContain(EM_DASH);
@@ -125,7 +127,7 @@ describe("renderHtml in app mode", () => {
   });
 });
 
-describe("renderShareSvg / renderShareText", () => {
+describe("the share card: renderStickerSvg / renderShareText", () => {
   it("contain none of the fixture's session titles or file paths, and contain the aggregate numbers (d)", () => {
     const s = report.share;
     for (const output of [shareSvg, shareText]) {
@@ -136,13 +138,27 @@ describe("renderShareSvg / renderShareText", () => {
 
       expect(output).toContain(String(s.agent_runs));
       expect(output).toContain(String(s.commits));
-      expect(output).toContain(String(s.biggest_tree));
       expect(output).toContain(String(s.runs_no_fate));
       expect(output).toContain("$17.05");
       expect(output).toContain("88%");
-      expect(output).toContain("measured by actuals");
-      expect(output).toContain("measured by actuals");
     }
+    expect(shareText).toContain("measured by actuals");
+    expect(shareText).toContain(String(s.biggest_tree)); // the card draws the tree instead of naming it
+  });
+
+  it("the card is one dark composition with npx actuals as its call to action, legible in a phone screenshot", () => {
+    expect(shareSvg).toContain('viewBox="0 0 1080 1080"');
+    expect(shareSvg).toContain("#0B0E12"); // the artboard
+    expect(shareSvg).toContain("npx actuals");
+    expect(shareSvg).toContain("getactuals.net");
+    expect(shareSvg).not.toContain("Gradient"); // no gradients, no glow
+    expect(shareSvg).not.toContain("filter=");
+    // the call to action is set large enough to survive a screenshot, every label large enough to read
+    const cta = /<text [^>]*font-size="(\d+)"[^>]*>npx actuals</.exec(shareSvg);
+    expect(Number(cta![1])).toBeGreaterThanOrEqual(34);
+    const sizes = [...shareSvg.matchAll(/<text [^>]*font-size="(\d+)"/g)].map((m) => Number(m[1]));
+    expect(sizes.length).toBeGreaterThan(8);
+    expect(Math.min(...sizes)).toBeGreaterThanOrEqual(23);
   });
 
   it("share.svg is well-formed enough to open standalone (has xmlns, no script, no re-quoted attributes)", () => {
@@ -159,7 +175,7 @@ describe("no em dash anywhere in rendered output (e)", () => {
   it.each([
     ["renderHtml", html],
     ["renderHtml redacted", redactedHtml],
-    ["renderShareSvg", shareSvg],
+    ["renderStickerSvg", shareSvg],
     ["renderShareText", shareText],
   ])("%s", (_name, output) => {
     expect(output).not.toContain(EM_DASH);

@@ -3,6 +3,24 @@
 Newest first. Each entry is what a user gets, in plain terms. Dates are the ship date once
 published; an unreleased entry is marked DRAFT and may still change.
 
+## 0.1.3 (DRAFT, unreleased)
+
+**`actuals watch` keeps working after npm cleans up.** The status line and the hooks used to
+name the file `npx` had just unpacked. npm prunes that folder, and the commands quietly
+stopped running. Watch now keeps a copy of the version you ran under
+`~/.actuals/bin/<version>/`, points `~/.actuals/bin/current` at it, and writes commands that
+name that path. Every `actuals watch` refreshes the copy; `actuals doctor` prints it and says
+whether it is there; `actuals unwatch` leaves it alone.
+
+**A new share card.** One composition on a dark card: agent runs, commits, what a commit cost
+at list rates, and the concurrency curve of your tallest agent tree, with `npx actuals` on it
+so anyone who sees a screenshot can find the tool. The same drawing now backs the card in the
+app, `share.svg` and the PNG.
+
+**Smaller things.** Bare `npx actuals` says the app is serving, how to stop it, and when it
+stops itself. One session reads as "1 session". A machine with no Claude Code sessions gets a
+sentence that says so instead of an offer to show every project.
+
 ## 0.1.2 (DRAFT, unreleased)
 
 The first release with an account, a live view, and the full claim model. Everything still runs

@@ -3,12 +3,14 @@ import { copyFileSync, existsSync, readdirSync, readFileSync, statSync, writeFil
 import path from "node:path";
 import { parseArgs } from "node:util";
 import os from "node:os";
-import { CLAUDE_ROOT, STATE_ROOT, git, parseSince, repoIdFor, repoRoot, stateDirFor, type Scope } from "./config.js";
-import { startApp } from "./app/server.js";
+import { CLAUDE_ROOT, STATE_ROOT, cliVersion, git, parseSince, repoIdFor, repoRoot, stateDirFor, type Scope } from "./config.js";
+import { IDLE_EXIT_MS, startApp } from "./app/server.js";
 import { embedDrawers } from "./app/session.js";
+import { listProjects } from "./app/projects.js";
 import { applyFixes, describeFixes, undoFix } from "./fix/index.js";
 import { appendLabel, latestRunId, readEntity, runDir } from "./ledger/store.js";
-import { applyWatch, concurrencyCap, describeWatch, eventFrom, hudLine, isWatching, planWatch, previousStatusLineOutput, record, unwatch } from "./watch/index.js";
+import { applyWatch, concurrencyCap, describeWatch, eventFrom, hudLine, isWatching, planWatch, previousStatusLineOutput, record, unwatch, watchCommand } from "./watch/index.js";
+import { shimStatus } from "./watch/shim.js";
 import { startHudServer } from "./watch/hud-server.js";
 import { confirm } from "./fix/index.js";
 import { clearLicence, DEFAULT_HOST, describeUpload, postLink, readLicence, redactedForUpload, saveLicence, uploadHosted } from "./hosted/index.js";
@@ -18,7 +20,7 @@ import { discover, KNOWN_CLAUDE_CODE_VERSIONS } from "./read/claude_code/index.j
 import { peekJsonLines, str as jstr } from "./read/jsonl.js";
 import { codexStatus } from "./read/codex/index.js";
 import { runPipeline } from "./pipeline.js";
-import { renderShareSvg, renderShareText } from "./render/share.js";
+import { renderStickerSvg, stickerNumbers } from "./render/sticker.js";
 import { renderHtml } from "./render/html.js";
 import type { Session, Run } from "./schema/ledger.js";
 import { LabelState } from "./schema/ledger.js";
@@ -56,22 +58,6 @@ function scopeFrom(values: Record<string, unknown>): Scope {
   return { repoPath, repoId, originUrl, allProjects: values["all-projects"] === true, since: parseSince(typeof values["since"] === "string" ? values["since"] : undefined), tools: ["claude_code"], redact: values["redact"] === true, generous: values["generous"] === true };
 }
 
-/** Baked in by the build (tsup define); undefined when run from source. */
-declare const __ACTUALS_VERSION__: string | undefined;
-
-/**
- * The package's own version. The build bakes it in; from source it is read from the
- * package.json one level above this file (src/ and dist/ both sit there). Never from
- * process.argv, which under npx is a symlink in another package's .bin.
- */
-function cliVersion(): string {
-  if (typeof __ACTUALS_VERSION__ === "string" && __ACTUALS_VERSION__) return __ACTUALS_VERSION__;
-  try {
-    const v = (JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as { version?: unknown }).version;
-    return typeof v === "string" ? v : "";
-  } catch { return ""; }
-}
-
 /** A network failure should read as one sentence naming the host and the next step, never a Node error like "fetch failed". */
 function netMessage(e: unknown, host: string): string {
   const m = e instanceof Error ? e.message : String(e);
@@ -98,8 +84,10 @@ async function serveApp(scope: Scope, stateDir: string, runId: string | null, va
   const port = typeof values["port"] === "string" ? Number(values["port"]) : 0;
   if (!Number.isInteger(port) || port < 0 || port > 65535) { console.log("--port must be a whole number between 0 and 65535"); return 2; }
   const app = await startApp({ scope, stateDir, runId, port });
-  console.log(`  app: ${app.url} (127.0.0.1 only; nothing leaves this machine) · Ctrl-C to stop`);
   if (values["no-open"] !== true) openFile(app.url);
+  // the command holds the terminal while it serves; say so, or it reads as a hang
+  const stops = Math.round(IDLE_EXIT_MS / 6000) / 10;
+  console.log(`  app on ${app.url.replace(/\/$/, "")} \u00b7 ctrl-c to stop \u00b7 it stops itself ${stops} minutes after the tab closes`);
   await app.idle;
   console.log("  page closed; stopped serving");
   return 0;
@@ -140,6 +128,11 @@ async function cmdRun(values: Record<string, unknown>): Promise<number> {
   if (empty) {
     // No sessions in this folder. Rather than a page of zeros and a dead end, open the app on
     // every project on this machine (the app widens automatically; the empty-folder default, 2026-09-06).
+    // Unless there are none anywhere: then the truth is that there is nothing to read yet.
+    if ((await listProjects(CLAUDE_ROOT)).every((p) => p.sessions === 0)) {
+      console.log("No Claude Code sessions found on this machine yet. Run Claude Code once, then come back.");
+      return 2;
+    }
     if (values["no-open"] === true) {
       console.log(`actuals · ${scope.repoPath} · no Claude Code sessions in this folder.`);
       console.log("  Run `actuals` here without --no-open to open the app on every project on this machine, or run it inside the repository your agents worked in.");
@@ -182,7 +175,7 @@ async function cmdDoctor(): Promise<number> {
       const versions = new Set<string>();
       for (const f of mine.slice(0, 50)) { try { for (const line of await peekJsonLines(f.file, 40)) { const v = jstr(line["version"]); if (v) { versions.add(v); break; } } } catch { /* skip */ } }
       const drift = [...versions].filter((v) => !KNOWN_CLAUDE_CODE_VERSIONS.includes(v.split(".").slice(0, 2).join(".")));
-      console.log(`  this repo: ${mine.length} sessions match by cwd · versions seen ${[...versions].sort().join(", ") || "none"}${drift.length ? ` · WARNING unpinned versions ${drift.join(", ")} (fixtures cover ${KNOWN_CLAUDE_CODE_VERSIONS.join(", ")})` : ""}`);
+      console.log(`  this repo: ${mine.length} ${mine.length === 1 ? "session matches" : "sessions match"} by cwd · versions seen ${[...versions].sort().join(", ") || "none"}${drift.length ? ` · WARNING unpinned versions ${drift.join(", ")} (fixtures cover ${KNOWN_CLAUDE_CODE_VERSIONS.join(", ")})` : ""}`);
       for (const w of warnings) console.log(`  warning: ${w}`);
     }
     const facets = path.join(CLAUDE_ROOT, "usage-data", "facets");
@@ -193,6 +186,8 @@ async function cmdDoctor(): Promise<number> {
   console.log(`  git: ${git(["--version"], cwd) ?? "not found"}`);
   console.log(`  state: ${STATE_ROOT} (${existsSync(STATE_ROOT) ? "exists" : "will be created"}; delete it to remove everything actuals stores)`);
   console.log(`  watch: ${isWatching() ? "on (statusline HUD and hooks installed; live ledger under each repo's state dir)" : "off (actuals watch installs the always-on status line)"}`);
+  const shim = shimStatus();
+  console.log(`  watch runs: ${shim.entry} ${shim.resolves ? `(resolves to ${shim.target})` : "(not there yet; actuals watch puts a copy of this version behind it)"}`);
   console.log("  network: none, except actuals login, logout and share --hosted, each only when you run it and each says what it sends first; telemetry: none");
   return 0;
 }
@@ -248,10 +243,13 @@ async function main(): Promise<number> {
     }
     case "doctor": return cmdDoctor();
     case "watch": {
-      const plan = planWatch({ hud: values["no-hud"] !== true });
-      if (plan.changes.length === 0) { console.log("watch is already installed; nothing to change"); return 0; }
+      // the stable copy is refreshed to this version first, so the commands below name it
+      const { command, shim } = watchCommand();
+      const plan = planWatch({ hud: values["no-hud"] !== true, command });
+      if (plan.changes.length === 0) { console.log(`watch is already installed; nothing to change${shim ? ` (it runs ${shim.entry})` : ""}`); return 0; }
       console.log(describeWatch(plan));
       console.log(`\nThis edits ${plan.settingsPath}: a statusline command (the HUD line: cost at list rates, context, agents against the cap, deaths) and hooks that append one line per event to ~/.actuals/<repo>/live/events.ndjson. No daemon, no network. \`actuals unwatch\` restores the file byte for byte.${plan.previousStatusLine ? " Your current statusline is kept and printed under ours." : ""}`);
+      if (shim) console.log(`Both point at ${shim.entry}, a copy of this version kept outside npm's cache so they keep working after npx cleans up.`);
       const ok = values["yes"] === true || (await confirm("install watch? [y/N] "));
       if (!ok) { console.log(`not installed${process.stdin.isTTY ? "" : " (no TTY; pass --yes to install)"}`); return 2; }
       applyWatch(plan);
@@ -368,8 +366,8 @@ async function main(): Promise<number> {
       }
       const l = needLatest(); if (!l) return 2;
       const dir = runDir(l.stateDir, l.runId);
-      writeFileSync(path.join(dir, "share.svg"), renderShareSvg(l.report));
-      const txt = renderShareText(l.report); writeFileSync(path.join(dir, "share.txt"), txt);
+      writeFileSync(path.join(dir, "share.svg"), renderStickerSvg(l.report));
+      const txt = stickerNumbers(l.report).text; writeFileSync(path.join(dir, "share.txt"), txt);
       console.log(txt); console.log(`\nsvg: ${path.join(dir, "share.svg")} (aggregates only)`);
       return 0;
     }

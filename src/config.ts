@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { existsSync, realpathSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 
@@ -88,4 +88,20 @@ export function isInside(child: string, parent: string): boolean {
 
 export function exists(p: string): boolean {
   return existsSync(p);
+}
+
+/** Baked in by the build (tsup define); undefined when run from source. */
+declare const __ACTUALS_VERSION__: string | undefined;
+
+/**
+ * The package's own version. The build bakes it in; from source it is read from the
+ * package.json one level above this file. Never from process.argv, which under npx is a
+ * symlink in another package's .bin.
+ */
+export function cliVersion(): string {
+  if (typeof __ACTUALS_VERSION__ === "string" && __ACTUALS_VERSION__) return __ACTUALS_VERSION__;
+  try {
+    const v = (JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as { version?: unknown }).version;
+    return typeof v === "string" ? v : "";
+  } catch { return ""; }
 }

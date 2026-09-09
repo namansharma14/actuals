@@ -14,6 +14,7 @@ import { fileURLToPath } from "node:url";
 import { z } from "zod";
 import { CLAUDE_ROOT, STATE_ROOT, repoIdFor, repoRoot, stateDirFor } from "../config.js";
 import { applyPlan, appliedFixIds, diffOf, undoFix, type FileChange } from "../fix/index.js";
+import { installShim, type Shim } from "./shim.js";
 
 export const WATCH_STORE = path.join(STATE_ROOT, "watch");
 const WATCH_ID = "watch";
@@ -53,6 +54,16 @@ const HOOK_EVENTS: Array<{ event: string; matcher?: string }> = [
   { event: "SessionStart" }, { event: "PreCompact" }, { event: "PostToolUse", matcher: "Write|Edit|MultiEdit|NotebookEdit|Bash|Agent" },
   { event: "SubagentStart" }, { event: "SubagentStop" }, { event: "Stop" }, { event: "SessionEnd" },
 ];
+
+/**
+ * The command watch installs into the settings: the stable copy under `~/.actuals/bin/current`
+ * when there is a bundle to copy there (every published install), else this process, for a
+ * source checkout with no build. Refreshes the copy to the version being run.
+ */
+export function watchCommand(root?: string): { command: string; shim: Shim | null } {
+  const shim = installShim(root === undefined ? {} : { root });
+  return { command: shim ? shim.command : selfCommand(), shim };
+}
 
 /** The command that reaches this CLI fastest: the built bundle when it exists, else the source through tsx. */
 export function selfCommand(): string {

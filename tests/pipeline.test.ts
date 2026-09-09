@@ -1,5 +1,6 @@
-import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { runPipeline } from "../src/pipeline.js";
@@ -31,12 +32,22 @@ describe("pipeline end to end", () => {
     expect(share).not.toContain(fx.repo);
   });
 
+  it("a machine with no Claude Code sessions is told exactly that, and exits non-zero", () => {
+    const root = realpathSync(mkdtempSync(path.join(tmpdir(), "actuals-empty-")));
+    const repo = path.join(root, "repo"); mkdirSync(repo);
+    execFileSync("git", ["init", "-q"], { cwd: repo });
+    const env = { ...process.env, ACTUALS_CLAUDE_DIR: path.join(root, "claude"), ACTUALS_STATE_DIR: path.join(root, "state") };
+    const r = spawnSync("npx", ["tsx", path.join(process.cwd(), "src/cli.ts"), "run"], { cwd: repo, env, encoding: "utf8" });
+    expect(r.stdout.trim()).toBe("No Claude Code sessions found on this machine yet. Run Claude Code once, then come back.");
+    expect(r.status).toBe(2);
+  });
+
   it("cli doctor and run work from the command line with overrides", () => {
     const fx = buildTinyFixture();
     execFileSync("git", ["init", "-q"], { cwd: fx.repo });
     const env = { ...process.env, ACTUALS_CLAUDE_DIR: fx.claudeRoot, ACTUALS_STATE_DIR: path.join(fx.root, "state") };
     const doctor = execFileSync("npx", ["tsx", path.join(process.cwd(), "src/cli.ts"), "doctor"], { cwd: fx.repo, env, encoding: "utf8" });
-    expect(doctor).toContain("1 sessions match by cwd");
+    expect(doctor).toContain("1 session matches by cwd");
     expect(doctor).toContain("network: none");
     const run = execFileSync("npx", ["tsx", path.join(process.cwd(), "src/cli.ts"), "run", "--no-open"], { cwd: fx.repo, env, encoding: "utf8" });
     expect(run).toContain("ran locally, nothing uploaded");

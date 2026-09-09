@@ -7,7 +7,7 @@
 import { APP_CSS, CLIENT_JS, EMBED_JS, appData, embedData, fixActions, sDrawerShell, sPicker, sSticker, type AppRender, type EmbedRender } from "./app.js";
 import { FONT_FACES } from "./fonts.js";
 import { TOKENS_CSS } from "./tokens.js";
-import { renderShareSvg } from "./share.js";
+import { renderStickerSvg, SIZE } from "./sticker.js";
 import type { Report } from "../schema/socket.js";
 
 export interface RenderOpts {
@@ -71,7 +71,7 @@ function sReadouts(r: Report, o: RenderOpts): string {
     : "";
   const next = o.app || o.embed ? "Click a session to see what its agents did." : "Run actuals app to click into any session.";
   return `<div class="top-block"><section class="readouts avoid">
-  <div class="ro ro-big">${lab(h.cost_sessions && h.cost_sessions.measured > 0 ? "tokens, as Claude Code and list rates count them" : "tokens at list rates")}<div class="fig fig-xl">${esc(money(h.cost_usd.value))}</div><div class="ro-sub">${mark(h.cost_usd.mark)}<span class="fine">${int(r.sessions.length)} sessions · ${int(r.share.agent_runs)} agent runs${h.cost_sessions && h.cost_sessions.measured > 0 ? ` · ${int(h.cost_sessions.measured)} measured by Claude Code, ${int(h.cost_sessions.priced)} priced at list rates` : ""}</span></div></div>
+  <div class="ro ro-big">${lab(h.cost_sessions && h.cost_sessions.measured > 0 ? "tokens, as Claude Code and list rates count them" : "tokens at list rates")}<div class="fig fig-xl">${esc(money(h.cost_usd.value))}</div><div class="ro-sub">${mark(h.cost_usd.mark)}<span class="fine">${int(r.sessions.length)} ${r.sessions.length === 1 ? "session" : "sessions"} · ${int(r.share.agent_runs)} agent runs${h.cost_sessions && h.cost_sessions.measured > 0 ? ` · ${int(h.cost_sessions.measured)} measured by Claude Code, ${int(h.cost_sessions.priced)} priced at list rates` : ""}</span></div></div>
   <div class="ro">${lab("commits")}<div class="fig">${int(h.commits.value)}</div><div class="ro-sub">${mark(h.commits.mark)}</div></div>
   <div class="ro">${lab("per commit")}<div class="fig">${esc(money(h.cost_per_commit.value))}</div><div class="ro-sub">${mark(h.cost_per_commit.mark)}</div></div>
   <div class="ro">${lab("files alive")}<div class="fig">${esc(pct(h.files_alive.alive, h.files_alive.written))}</div><div class="ro-sub">${mark(h.files_alive.mark)}<span class="fine">${int(h.files_alive.alive)} of ${int(h.files_alive.written)}</span></div></div>
@@ -289,7 +289,7 @@ function sSessions(r: Report, o: RenderOpts): string {
     </div>`;
   }).join("");
   return `<section class="block break" id="sessions">
-  <div class="block-head"><div>${lab("what you got, session by session")}<h2>${int(r.sessions.length)} sessions.</h2></div></div>
+  <div class="block-head"><div>${lab("what you got, session by session")}<h2>${int(r.sessions.length)} ${r.sessions.length === 1 ? "session" : "sessions"}.</h2></div></div>
   <div class="table sessions"><div class="th-row"><div class="th">date</div><div class="th">session</div><div class="th">cost</div><div class="th r">commits</div><div class="th r">files alive</div><div class="th r">agents</div><div class="th">outcome</div></div>${rows}</div>
 </section>`;
 }
@@ -308,7 +308,7 @@ function sFixes(r: Report, o: RenderOpts): string {
 }
 
 function sShare(r: Report): string {
-  const svg = renderShareSvg(r).replace(/ xmlns="[^"]*"/, "").replace(/ width="1200" height="630"/, ' style="width: 100%; height: auto; display: block;"');
+  const svg = renderStickerSvg(r).replace(/ xmlns="[^"]*"/, "").replace(new RegExp(` width="${SIZE}" height="${SIZE}"`), ' style="width: 100%; height: auto; display: block;"');
   return `<section class="block avoid">
   <div class="block-head"><div>${lab("share it, or don't")}<h2>Aggregates only.</h2></div></div>
   <div class="share-wrap">${svg}</div>

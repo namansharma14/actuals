@@ -6,6 +6,8 @@
  */
 import type { Report } from "../schema/socket.js";
 import { renderShareText } from "./share.js";
+import { MONO_FACE } from "./fonts.js";
+import { stickerData } from "./sticker.js";
 
 export interface CatalogRow { id: string; date: string; title: string; cost_usd: number; agents: number; peak_concurrency: number }
 export interface ProjectOption { slug: string; label: string; sessions: number; last: string | null }
@@ -137,39 +139,12 @@ export function fixActions(fixId: string, available: boolean, applied: boolean):
   </div>`;
 }
 
-/**
- * Everything the sticker is drawn from: aggregates and a curve of numbers. Built from
- * report.share and the tallest tree's run times only. No title, path, prompt or file name
- * exists in this object, and the test proves it against the fixture.
- */
-export interface StickerData {
-  period: string; runs: number; commits: number; per_commit: string; files_alive_pct: number | null; runs_no_fate: number; biggest_tree: number;
-  curve: { points: Array<[number, number]>; peak: number; peak_x: number; died: number; runs: number; minutes: number } | null;
-  text: string;
-}
-export function stickerData(r: Report): StickerData {
-  const s = r.share; const t = r.burn.tree.timeline;
-  let curve: StickerData["curve"] = null;
-  if (t && t.runs.length) {
-    const t0 = new Date(t.start).getTime(), t1 = new Date(t.end).getTime(), span = Math.max(1, t1 - t0);
-    const ev: Array<[number, number]> = [];
-    for (const run of t.runs) { ev.push([new Date(run.start).getTime(), 1]); ev.push([new Date(run.end).getTime(), -1]); }
-    ev.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-    let level = 0; const points: Array<[number, number]> = [[0, 0]];
-    const f = (ms: number) => Math.round(((ms - t0) / span) * 1000) / 1000;
-    for (const [ms, d] of ev) { points.push([f(ms), level]); level += d; points.push([f(ms), level]); }
-    points.push([1, 0]);
-    curve = { points, peak: t.peak, peak_x: f(new Date(t.peak_at).getTime()), died: t.died, runs: t.runs.length, minutes: Math.round(span / 60e3) };
-  }
-  return { period: s.period, runs: s.agent_runs, commits: s.commits, per_commit: s.cost_per_commit === null ? "n/a" : money(s.cost_per_commit), files_alive_pct: s.files_alive_pct, runs_no_fate: s.runs_no_fate, biggest_tree: s.biggest_tree, curve, text: renderShareText(r) };
-}
-
 /** The X post intent: the text card only; the sticker PNG is attached by the user from the clipboard. */
 export function xIntentUrl(r: Report): string {
   return "https://x.com/intent/post?text=" + encodeURIComponent(renderShareText(r) + "\n\nnpx actuals");
 }
 
-/** The sticker section (app only): a transparent PNG drawn in the browser from aggregates. */
+/** The sticker section (app only): the card, rasterized in the browser for copy, share and save. */
 export function sSticker(r: Report): string {
   return `<section class="block avoid" id="sticker-block">
   <div class="block-head"><div>${lab("the sticker")}<h2>Three numbers and the curve.</h2></div></div>
@@ -178,8 +153,7 @@ export function sSticker(r: Report): string {
     <div class="stk-side">
       <div class="stk-row"><button type="button" class="btn" data-stk="copy">copy sticker</button><button type="button" class="btn" data-stk="share">share</button><button type="button" class="btn ghost" data-stk="download">save png</button><a class="btn" id="stk-x" href="${esc(xIntentUrl(r))}" target="_blank" rel="noopener noreferrer">post on X</a><button type="button" class="btn ghost" data-stk="hosted">share as a page</button></div>
       <div class="hosted" id="hosted" hidden><div class="lab">what would leave this machine</div><ul class="fine" id="hosted-leaves"></ul><div class="stk-row"><button type="button" class="btn sm" id="hosted-go">upload and get the link</button><button type="button" class="btn sm ghost" id="hosted-cancel">cancel</button><span class="fine" id="hosted-msg"></span></div></div>
-      <div class="stk-row">${lab("ink")}<button type="button" class="btn sm" data-ink="light" data-on="1">light, for dark photos</button><button type="button" class="btn sm" data-ink="dark" data-on="0">dark, for light photos</button></div>
-      <span class="fine" id="stk-msg">1080 by 1080 PNG, transparent · aggregates only</span>
+      <span class="fine" id="stk-msg">1080 by 1080 PNG · aggregates only</span>
     </div>
   </div>
 </section>`;
@@ -188,7 +162,7 @@ export function sSticker(r: Report): string {
 const lab = (s: string): string => `<div class="lab">${esc(s)}</div>`;
 
 export function appData(app: AppRender, r: Report): string {
-  const data = { token: app.token, port: app.port, scope: app.scope, drawn: r.burn.tree.timeline?.session_id ?? null, sticker: stickerData(r) };
+  const data = { token: app.token, port: app.port, scope: app.scope, drawn: r.burn.tree.timeline?.session_id ?? null, sticker: stickerData(r, { fontFaces: MONO_FACE }) };
   // "<" never appears raw inside the script; the JSON stays inert if a title carries markup
   return JSON.stringify(data).replace(/</g, "\\u003c");
 }
@@ -441,43 +415,18 @@ export const CLIENT_JS = `
     wire();
   });
 
-  // sticker: a transparent PNG drawn from A.sticker only (aggregates and a curve of numbers)
+  // sticker: the card in A.sticker, drawn by the same code that writes share.svg, rasterized here
   var stk = A.sticker, cv = $("#sticker"), stkMsg = $("#stk-msg");
   if (stk && cv) {
-    var ink = "light";
-    function inks() { return ink === "light" ? { ink: "#E8E4DA", faint: "#9DA3AB", warn: "#FF6A3D", mark: "#98B2C4" } : { ink: "#121212", faint: "#4F5257", warn: "#C8471F", mark: "#27506C" }; }
-    function spaced(ctx, text, x, y, gap) { for (var i = 0; i < text.length; i++) { ctx.fillText(text[i], x, y); x += ctx.measureText(text[i]).width + gap; } return x; }
-    function draw() {
-      var c = inks(), ctx = cv.getContext("2d"), W = cv.width, L = 72, R = W - 72;
-      ctx.clearRect(0, 0, W, cv.height);
-      ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
-      ctx.fillStyle = c.ink; ctx.font = "500 34px 'Martian Mono', monospace"; spaced(ctx, "ACTUALS", L, 118, 8);
-      ctx.fillStyle = c.faint; ctx.font = "400 23px 'Martian Mono', monospace"; ctx.textAlign = "right"; ctx.fillText(stk.period, R, 118); ctx.textAlign = "left";
-      // two counts on one line, then the headline: what a commit cost at list rates
-      [[String(stk.runs), "AGENT RUNS"], [String(stk.commits), "COMMITS"]].forEach(function (cell, i) { var x = L + i * 468; ctx.fillStyle = c.ink; ctx.font = "300 88px 'Martian Mono', monospace"; ctx.fillText(cell[0], x, 280); ctx.fillStyle = c.faint; ctx.font = "400 23px 'Martian Mono', monospace"; spaced(ctx, cell[1], x, 318, 2.5); });
-      ctx.fillStyle = c.ink; ctx.font = "300 136px 'Martian Mono', monospace"; ctx.fillText(stk.per_commit, L, 500);
-      ctx.fillStyle = c.faint; ctx.font = "400 23px 'Martian Mono', monospace"; spaced(ctx, "PER COMMIT, AT LIST RATES", L, 540, 2.5);
-      var top = 620, bottom = 830;
-      ctx.strokeStyle = c.faint; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L, bottom); ctx.lineTo(R, bottom); ctx.stroke();
-      ctx.fillStyle = c.faint; ctx.font = "400 23px 'Martian Mono', monospace";
-      if (stk.curve && stk.curve.points.length) {
-        var ymax = Math.max(4, stk.curve.peak), X = function (f) { return L + f * (R - L); }, Y = function (v) { return bottom - (v / ymax) * (bottom - top); };
-        ctx.strokeStyle = c.ink; ctx.lineWidth = 4; ctx.lineJoin = "round"; ctx.beginPath();
-        stk.curve.points.forEach(function (p, i) { if (i === 0) ctx.moveTo(X(p[0]), Y(p[1])); else ctx.lineTo(X(p[0]), Y(p[1])); });
-        ctx.stroke();
-        ctx.fillStyle = c.mark; ctx.beginPath(); ctx.arc(X(stk.curve.peak_x), Y(stk.curve.peak), 9, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = c.faint; spaced(ctx, stk.curve.peak + " AT ONCE · " + stk.curve.runs + " RUNS IN " + stk.curve.minutes + " MIN" + (stk.curve.died ? " · " + stk.curve.died + " DIED" : ""), L, bottom + 40, 2.5);
-      } else {
-        spaced(ctx, "NO AGENT TREE IN THIS WINDOW", L, bottom + 40, 2.5);
-      }
-      ctx.fillStyle = c.faint; spaced(ctx, "FILES ALIVE " + (stk.files_alive_pct === null ? "N/A" : stk.files_alive_pct + "%") + " · RUNS WITH NO FATE " + stk.runs_no_fate + " · BIGGEST TREE " + stk.biggest_tree, L, 940, 2.5);
-      ctx.fillStyle = c.ink; ctx.font = "500 23px 'Martian Mono', monospace"; spaced(ctx, "MEASURED BY ACTUALS", L, 1000, 4);
-    }
-    var fontsReady = document.fonts && document.fonts.load ? Promise.all(["300 136px 'Martian Mono'", "300 88px 'Martian Mono'", "500 34px 'Martian Mono'", "400 23px 'Martian Mono'"].map(function (f) { return document.fonts.load(f); })) : Promise.resolve();
-    fontsReady.then(draw, draw);
-    $$("[data-ink]").forEach(function (b) { b.addEventListener("click", function () { ink = b.getAttribute("data-ink"); $$("[data-ink]").forEach(function (x) { x.setAttribute("data-on", x === b ? "1" : "0"); }); draw(); }); });
+    var drawn = new Promise(function (res, rej) {
+      var im = new Image();
+      im.onload = function () { var ctx = cv.getContext("2d"); ctx.clearRect(0, 0, cv.width, cv.height); ctx.drawImage(im, 0, 0, cv.width, cv.height); res(true); };
+      im.onerror = function () { rej(new Error("could not draw the card")); };
+      im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(stk.svg);
+    });
     function say(t) { if (stkMsg) stkMsg.textContent = t; }
-    function png() { return new Promise(function (res, rej) { cv.toBlob(function (b) { if (b) res(b); else rej(new Error("could not render the sticker")); }, "image/png"); }); }
+    drawn.catch(function (e) { say(e.message); });
+    function png() { return drawn.then(function () { return new Promise(function (res, rej) { cv.toBlob(function (b) { if (b) res(b); else rej(new Error("could not render the card")); }, "image/png"); }); }); }
     $$("[data-stk]").forEach(function (b) {
       b.addEventListener("click", function () {
         var act = b.getAttribute("data-stk");

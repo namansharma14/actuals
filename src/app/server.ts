@@ -29,6 +29,9 @@ import { homedir } from "node:os";
 import { hudSnapshot, type HudSnapshot } from "../watch/hud-server.js";
 import { isWatching, liveDir } from "../watch/index.js";
 
+/** How long the app keeps serving after the last page stops checking in (the page checks in every 10 seconds). */
+export const IDLE_EXIT_MS = 150_000;
+
 export interface AppOptions {
   /** the base scope every run uses (repo, redact, generous, allProjects, --since) */
   scope: Scope;
@@ -100,7 +103,7 @@ export async function startApp(opts: AppOptions): Promise<App> {
   const launchStateDir = opts.stateDir;
   const dirFor = opts.stateDirFor ?? stateDirFor;
   const claudeRoot = opts.claudeRoot ?? CLAUDE_ROOT;
-  const idleExitMs = opts.idleExitMs === undefined ? 150_000 : opts.idleExitMs;
+  const idleExitMs = opts.idleExitMs === undefined ? IDLE_EXIT_MS : opts.idleExitMs;
   const launchScope: Scope = { ...opts.scope, sessionIds: null };
   let baseScope: Scope = launchScope;
   // the project switcher: every Claude Code project on this machine; the launch repo is the one whose recorded cwd sits inside it
