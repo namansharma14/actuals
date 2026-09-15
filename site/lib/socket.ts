@@ -1,14 +1,15 @@
 /**
- * The upload contract. A hosted run may only ever carry a redacted socket, so this module
- * is the one place that decides what is redacted enough to host, and the one place that
- * strips the fields the CLI redacts at render time rather than in the JSON.
+ * What the site is allowed to publish. The demo report is a real run, so this module is the
+ * one place that decides whether a report.json is redacted enough to put on a public page,
+ * and the one place that strips the fields the CLI redacts at render time rather than in the
+ * JSON.
  *
  * Two moves, in order:
  *   check    reject anything that is not a valid, redacted report.json
- *   sanitise remove the free text that `--redact` leaves in the socket and that
+ *   sanitise remove the free text that `--redact` leaves in the file and that
  *            renderHtml(redact) hides but does not delete: fix targets, fix snippets and
  *            the /insights goal line. Nothing here is displayed on any surface, so the
- *            stored file should not carry it either.
+ *            committed fixture should not carry it either.
  */
 import { ReportSchema, type Report } from "../../src/schema/socket.js";
 
@@ -16,16 +17,13 @@ import { ReportSchema, type Report } from "../../src/schema/socket.js";
 const REDACTED_TITLE = /^session [0-9a-f]{8}$/;
 const REDACTED = "(redacted)";
 
-export const MAX_SOCKET_BYTES = 2 * 1024 * 1024;
-export const MAX_STICKER_BYTES = 2 * 1024 * 1024;
-
 export type SocketCheck = { ok: true; report: Report } | { ok: false; error: string };
 
 function reject(error: string): SocketCheck {
   return { ok: false, error };
 }
 
-/** Free text the socket carries but no hosted surface shows. */
+/** Free text the file carries but no page shows. */
 function sanitise(report: Report): Report {
   return {
     ...report,

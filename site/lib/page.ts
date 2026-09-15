@@ -13,10 +13,6 @@ import { renderHtml } from "../../src/render/html.js";
 import drawersFixture from "../fixtures/demo-drawers.json";
 import type { Report } from "./socket";
 
-export function reportDocument(report: Report): string {
-  return renderHtml(report, { redact: true });
-}
-
 const drawers: Record<string, string> = drawersFixture as Record<string, string>;
 
 /* The drawers were redacted by the command and leak-checked before they were committed;
@@ -32,8 +28,7 @@ export function reportEmbedDocument(report: Report): string {
 /**
  * A frame loading a whole document wants these headers and no more. The document is
  * self-contained (embedded fonts, inline styles, no network, an inline script only in embed
- * mode), so the policy names exactly that and nothing else; a stored socket that somehow
- * carried markup could still not load or send anything.
+ * mode), so the policy names exactly that and nothing else.
  */
 export const reportHeaders = (maxAge: number, opts: { script?: boolean } = {}): Record<string, string> => ({
   "content-type": "text/html; charset=utf-8",

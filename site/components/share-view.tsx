@@ -36,10 +36,9 @@ export function longDay(iso: string): string {
 }
 
 /**
- * One hosted run, and the sample run, are the same page: the site's own head, the report
- * itself in a frame it is never re-styled inside, one ask, and one line on what left the
- * machine. The frame loads the report from its own route so the document is served exactly
- * as the command writes it.
+ * The sample run's page: the site's own head, the report itself in a frame it is never
+ * re-styled inside, one ask, and one line on what left the machine. The frame loads the
+ * report from its own route so the document is served exactly as the command writes it.
  */
 export function ShareView({
   report,
@@ -55,11 +54,11 @@ export function ShareView({
   reportSrc: string;
   stickerSrc?: string | null;
   stickerDrawing?: React.ReactNode;
-  /** One line in the head that says what this run is. The sample page names itself here. */
+  /** One line in the head that says what this run is. */
   headNote?: string;
   /** The line above the frame: who this ran for, and what is on the page. */
   lead: string;
-  /** The sample run explains the two marks here; a hosted run does not. */
+  /** The sample run explains the two marks here. */
   marksLine?: string;
   closing: string;
 }) {

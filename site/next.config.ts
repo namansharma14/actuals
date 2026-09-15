@@ -1,9 +1,5 @@
 import type { NextConfig } from "next";
 
-/* the old app paths land on the account while hosted is on; while it is parked the account is a 404, so they
-   land on the landing (temporary, so a browser does not keep the parked answer) */
-const appHome = process.env.HOSTED_ENABLED === "1" ? "/account" : "/";
-
 /**
  * The site renders the CLI's own report with the CLI's own renderer: app code imports
  * `../src/render/html.ts` from the repository root, so webpack needs permission to compile
@@ -22,13 +18,13 @@ const config: NextConfig = {
       { source: "/start.html", destination: "/", permanent: true },
       { source: "/onboard", destination: "/", permanent: true },
       { source: "/onboard.html", destination: "/", permanent: true },
-      { source: "/app", destination: appHome, permanent: false },
-      { source: "/app.html", destination: appHome, permanent: false },
-      { source: "/app/:view", destination: appHome, permanent: false },
+      { source: "/app", destination: "/", permanent: false },
+      { source: "/app.html", destination: "/", permanent: false },
+      { source: "/app/:view", destination: "/", permanent: false },
       { source: "/pricing", destination: "/", permanent: true },
     ];
   },
-  /* the retired v1 API endpoints answer 410 with one sentence (never the Stripe webhook, which is edited in place) */
+  /* the retired v1 API endpoints answer 410 with one sentence */
   async rewrites() {
     return [
       { source: "/api/waitlist", destination: "/api/gone" },

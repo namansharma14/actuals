@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [{ userAgent: "*", allow: "/", disallow: ["/api/", "/account", "/pair", "/sso-callback", "/r/"] }],
+    rules: [{ userAgent: "*", allow: "/", disallow: ["/api/"] }],
     sitemap: "https://getactuals.net/sitemap.xml",
   };
 }

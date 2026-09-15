@@ -4,9 +4,9 @@ import { stickerData } from "../../src/render/sticker.js";
 import "./components.css";
 
 /**
- * The square a run becomes: the card the command already draws, aggregates only. A hosted
- * run has its own PNG and is shown as one; the sample run is drawn here from the report so
- * the page carries no capture and no stored image.
+ * The square a run becomes: the card the command already draws, aggregates only. The sample
+ * run is drawn here from the report itself, so the page carries no capture and no stored
+ * image.
  */
 export function Sticker({
   src,
