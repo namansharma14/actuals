@@ -3,7 +3,38 @@
 Newest first. Each entry is what a user gets, in plain terms. Dates are the ship date once
 published; an unreleased entry is marked DRAFT and may still change.
 
-## 0.1.3 (DRAFT, unreleased)
+## 0.2.0 (2026-09-17)
+
+**Share your numbers, if you want to.** Actuals still reads your sessions and git on your own
+machine and uploads nothing. New in this release: you can choose to share the report's
+numbers with us after each run, so we can see how the tool is used. Off by default. After
+your first report opens, the terminal asks once, default no, and prints the exact JSON it
+would send before you answer: the card's aggregates (sessions, agent runs, cost at list
+rates, commits, cost per commit, files written and alive, runs with no fate, runs died, the
+biggest tree) plus versions and the editor. Never a prompt, a path, a file name, a title, a
+label note, a commit message, a repository name or a branch. `actuals share --numbers`
+turns it on later, `actuals share --numbers --off` turns it off, `actuals share --numbers
+--show` prints the payload without sending, and `actuals doctor` says which it is. When it
+is on, the report's top line says "shared N numbers" instead of "0 bytes uploaded", so the
+report itself always tells you what left. `rm -rf ~/.actuals` deletes the random install
+id along with everything else.
+
+**The report, reordered around what you can act on.** The readouts come first, then every
+session with its cost and one-word outcome (the ten costliest open, the rest one click
+away), then the fate of runs beside kept work per dollar by model, then the fixes. The
+tallest agent tree, which used to open the page, now follows the fixes. Section text is
+cut to one line each; the method and the list of what the report cannot see sit behind
+one disclosure that opens in print. Every number keeps its provenance mark.
+
+**Smaller things.** The post text ends with `npx actuals · github.com/namansharma14/actuals`
+so a reader can find the tool. After your first report, one line invites a star on the
+public repository; it never appears again.
+
+## 0.1.4 (2026-09-09)
+
+The README now mirrors the how-to-use guide. No change to the tool.
+
+## 0.1.3 (2026-09-09)
 
 **`actuals watch` keeps working after npm cleans up.** The status line and the hooks used to
 name the file `npx` had just unpacked. npm prunes that folder, and the commands quietly
@@ -21,7 +52,7 @@ app, `share.svg` and the PNG.
 stops itself. One session reads as "1 session". A machine with no Claude Code sessions gets a
 sentence that says so instead of an offer to show every project.
 
-## 0.1.2 (DRAFT, unreleased)
+## 0.1.2 (2026-09-09)
 
 The first release with an account, a live view, and the full claim model. Everything still runs
 on your own machine: Actuals reads your local Claude Code transcripts and git, and calls no model.
@@ -54,11 +85,11 @@ instead, so the axis times, the counts, and the callouts stay readable. Print is
 **Reads every worktree.** If you run Actuals in one git worktree of a repo, it now sees the
 sessions and commits from the repo's other worktrees too, instead of missing them.
 
-## 0.1.1
+## 0.1.1 (2026-09-06)
 
 (Published notes to follow.)
 
-## 0.1.0
+## 0.1.0 (2026-09-05)
 
 First public build: read your local transcripts and git, and get a measured report of your agent
 work, with nothing uploaded and no model called.

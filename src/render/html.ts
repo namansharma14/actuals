@@ -16,6 +16,9 @@ export interface RenderOpts {
   embed?: EmbedRender;
   /** a hosted copy: the page exists because this redacted report was uploaded, and it says so in the rail and the closing line */
   hosted?: boolean;
+  /** numbers sharing is on and this run sent some: the rail and the closing line say how many and when.
+   *  `hosted` wins wherever both are set; a hosted page's true sentence is the upload that made it. */
+  numbersShared?: { count: number; at: string };
 }
 
 // ---------------------------------------------------------------------------
@@ -53,13 +56,20 @@ export const lab = (s: string): string => `<div class="lab">${esc(s)}</div>`;
 // ---------------------------------------------------------------------------
 // sections
 // ---------------------------------------------------------------------------
+/** What the rail says about what left: a hosted page was uploaded, a shared run says how many numbers, everything else says none. */
+function railState(o: RenderOpts): string {
+  if (o.hosted) return "hosted copy · read locally · 0 tokens spent";
+  if (o.numbersShared) return `local · shared ${int(o.numbersShared.count)} numbers · 0 tokens spent`;
+  return "local · 0 bytes uploaded · 0 tokens spent";
+}
+
 function sRail(r: Report, o: RenderOpts): string {
   const repo = o.redact ? "redacted" : r.repo_path;
   const since = r.window.since ? dateOnly(r.window.since) : "the earliest session";
   const until = r.window.until ? dateOnly(r.window.until) : "now";
   return `<header class="rail">
   <div class="rail-l"><span class="wordmark">ACTUALS</span><span>${esc(repo)}</span><span>${esc(since)} to ${esc(until)}</span></div>
-  <div class="rail-r"><span>rates ${esc(r.rates_version)}</span><span>generated ${esc(dateTime(r.generated_at))}</span><span class="rail-strong">${o.hosted ? "hosted copy · read locally · 0 tokens spent" : "local · 0 bytes uploaded · 0 tokens spent"}</span></div>
+  <div class="rail-r"><span>rates ${esc(r.rates_version)}</span><span>generated ${esc(dateTime(r.generated_at))}</span><span class="rail-strong">${esc(railState(o))}</span></div>
 </header>`;
 }
 
@@ -245,17 +255,20 @@ function numberWord(n: number): string {
   return int(n);
 }
 
-function sFateAndRereads(r: Report, o: RenderOpts): string {
+/** Fate of every run, beside the kept-per-dollar table: what the spend turned into, in one bar. */
+function sFate(r: Report): string {
   const f = r.burn.fate; const count = Object.values(f.by_state).reduce((a, b) => a + b, 0); const total = count || 1;
   const order: Array<[string, string, string]> = [["landed_tracked", "var(--d1)", "landed, tracked"], ["landed_untracked", "var(--d2)", "landed, untracked"], ["finished_unlanded", "var(--dim)", "finished, nothing survives"], ["unknown", "var(--dimmer)", "unknown"], ["died", "var(--warn)", "died"], ["founder_labelled", "var(--mark)", "your label"], ["still_running", "var(--grid)", "still running"]];
   const segs = order.filter(([k]) => (f.by_state[k] ?? 0) > 0).map(([k, c]) => `<i style="width: ${((f.by_state[k] ?? 0) / total) * 100}%; background: ${c}"></i>`).join("");
   const rows = order.filter(([k]) => (f.by_state[k] ?? 0) > 0).map(([k, c, l]) => `<div class="num" style="color: ${k === "died" ? "var(--warn)" : "var(--ink)"}">${int(f.by_state[k] ?? 0)}</div><div class="muted">${esc(l)}<i class="dot" style="background: ${c}"></i></div>`).join("");
+  return `<div class="col">${lab(`fate of ${int(count)} ${count === 1 ? "run" : "runs"}`)}<div class="segbar">${segs}</div><div class="kv">${rows}</div><div class="fine">${mark(f.mark)} ${int(f.unlandable_count)} with no traceable fate, ${esc(money(f.unlandable_cost_usd))}</div></div>`;
+}
+
+/** The re-read habit, in the foot beside the method: a count, the five worst paths, its mark. */
+function sRereads(r: Report, o: RenderOpts): string {
   const rr = r.burn.rereads;
   const top = rr.top.slice(0, 5).map((x) => `<div class="num">${int(x.n)}</div><div class="muted mono-sm">${esc(o.redact ? "(redacted)" : x.path)}</div>`).join("");
-  return `<section class="two avoid">
-  <div class="col">${lab(`fate of ${int(count)} ${count === 1 ? "run" : "runs"}`)}<div class="segbar">${segs}</div><div class="kv">${rows}</div><div class="fine">${mark(f.mark)} ${int(f.unlandable_count)} with no traceable fate, ${esc(money(f.unlandable_cost_usd))}</div></div>
-  <div class="col">${lab("the same file, read again")}<div class="fig fig-md">${int(rr.rereads)}<span class="unit"> of ${int(rr.reads)} reads</span></div><div class="kv">${top || '<div class="muted">no re-reads</div>'}</div><div class="fine">${mark(rr.mark)}</div></div>
-</section>`;
+  return `<div class="col">${lab("the same file, read again")}<div class="fig fig-md">${int(rr.rereads)}<span class="unit"> of ${int(rr.reads)} reads</span></div><div class="kv">${top || '<div class="muted">no re-reads</div>'}</div><div class="fine">${mark(rr.mark)}</div></div>`;
 }
 
 function sModels(r: Report): string {
@@ -263,21 +276,34 @@ function sModels(r: Report): string {
   // a model that spent and landed nothing is 0.000; null only when it spent nothing
   const kept = (m: Report["models"][number]): number | null => m.kept_per_usd ?? (m.cost_usd > 0 ? 0 : null);
   const rows = r.models.map((m) => { const k = kept(m); return `<div class="mono-sm">${esc(m.model)}</div><div class="num">${int(m.runs)}</div><div class="num">${m.per_run_usd.toFixed(2)}</div><div class="num">${int(m.finished)}</div><div class="num">${int(m.landed)}</div><div>${k === null ? '<span class="muted">no spend</span>' : `<span class="kbar"><i style="width: ${maxK > 0 ? Math.round((k / maxK) * 100) : 0}%"></i></span><span class="num">${k.toFixed(3)}</span>`}</div>`; }).join("");
-  return `<section class="block avoid">
-  <div class="block-head"><div>${lab("kept work per dollar, by model")}</div></div>
+  return `<div class="col">${lab("kept work per dollar, by model")}
   <div class="table models"><div class="th">model</div><div class="th r">runs</div><div class="th r">$ / run</div><div class="th r">finished</div><div class="th r">landed</div><div class="th">kept / $</div>${rows}</div>
   <div class="fine">kept work per dollar; 0 means nothing landed · ${r.models.map((m) => mark(m.rate_mark)).filter((v, i, a) => a.indexOf(v) === i).join(" ")}</div>
-</section>`;
+</div>`;
 }
 
+/** What the spend turned into, directly under the sessions it came from: fate beside kept per dollar. */
+function sYield(r: Report): string {
+  return `<section class="yield avoid">${sFate(r)}${sModels(r)}</section>`;
+}
+
+/**
+ * Every session, costliest first. The ten that cost the most are open; the rest sit behind one
+ * disclosure so the page opens on the alpha instead of a wall of rows. The outcome is one word
+ * with its mark; the evidence sentence behind it rides in the cell's title and in the drawer.
+ */
+const SESSIONS_OPEN = 10;
+
 function sSessions(r: Report, o: RenderOpts): string {
-  const max = Math.max(1, ...r.sessions.map((s) => s.cost_usd));
-  const rows = r.sessions.map((s) => {
+  const all = [...r.sessions].sort((a, b) => b.cost_usd - a.cost_usd);
+  const max = Math.max(1, ...all.map((s) => s.cost_usd));
+  const row = (s: Report["sessions"][number]): string => {
     const title = o.redact ? `session ${s.id.slice(0, 8)}` : s.title;
     const goal = s.claimed && s.claimed.goal && !o.redact ? plain(s.claimed.goal) : "";
     const goalShort = goal.length > 96 ? goal.slice(0, 95).replace(/\s+\S*$/, "") + "…" : goal;
     const claimed = s.claimed ? `<div class="claimed" title="${esc(goal)}">claimed by /insights: ${esc(plain(s.claimed.outcome))}${goalShort ? ` · ${esc(goalShort)}` : ""} ${mark(s.claimed.mark)}</div>` : "";
     const oc = s.outcome.state === "died" ? "warn" : ""; // warm means died: colour the outcome only when the outcome itself is a death, not when any run in it died
+    const note = plain(s.outcome.note);
     return `<div class="tr"${o.app || o.embed ? ` data-session="${esc(s.id)}" title="open this session"` : ""}>
       <div class="fine">${esc(dayLabel(s.date))}</div>
       <div><div class="title">${esc(title)}</div>${claimed}${s.compactions ? `<div class="claimed">${int(s.compactions)} compaction${s.compactions === 1 ? "" : "s"} recorded live ${mark("measured")}</div>` : ""}</div>
@@ -285,12 +311,19 @@ function sSessions(r: Report, o: RenderOpts): string {
       <div class="num r">${int(s.commits)}</div>
       <div class="num r">${int(s.files_alive)} / ${int(s.files_written)}</div>
       <div class="num r ${s.died > 0 ? "warn" : ""}" style="white-space: nowrap;">${s.agents ? `${int(s.agents)} · peak ${s.peak_concurrency} · d${s.max_depth}` : "0"}</div>
-      <div class="outcome ${oc}"><span class="state">${esc(s.outcome.state)}</span>${mark(s.outcome.mark)}<div class="fine">${esc(plain(s.outcome.note))}</div></div>
+      <div class="outcome ${oc}"${note ? ` title="${esc(note)}"` : ""}><span class="state">${esc(s.outcome.state)}</span>${mark(s.outcome.mark)}</div>
     </div>`;
-  }).join("");
+  };
+  const head = `<div class="th-row"><div class="th">date</div><div class="th">session</div><div class="th">cost</div><div class="th r">commits</div><div class="th r">files alive</div><div class="th r">agents</div><div class="th">outcome</div></div>`;
+  const open = all.slice(0, SESSIONS_OPEN).map(row).join("");
+  const rest = all.slice(SESSIONS_OPEN);
+  const more = rest.length
+    ? `<details class="more"><summary>show all ${int(all.length)} sessions</summary><div class="table sessions">${rest.map(row).join("")}</div></details>`
+    : "";
   return `<section class="block break" id="sessions">
-  <div class="block-head"><div>${lab("what you got, session by session")}<h2>${int(r.sessions.length)} ${r.sessions.length === 1 ? "session" : "sessions"}.</h2></div></div>
-  <div class="table sessions"><div class="th-row"><div class="th">date</div><div class="th">session</div><div class="th">cost</div><div class="th r">commits</div><div class="th r">files alive</div><div class="th r">agents</div><div class="th">outcome</div></div>${rows}</div>
+  <div class="block-head"><div>${lab("what you got, session by session")}<h2>${int(all.length)} ${all.length === 1 ? "session" : "sessions"}, costliest first.</h2></div></div>
+  <div class="table sessions">${head}${open}</div>
+  ${more}
 </section>`;
 }
 
@@ -310,9 +343,9 @@ function sFixes(r: Report, o: RenderOpts): string {
 function sShare(r: Report): string {
   const svg = renderStickerSvg(r).replace(/ xmlns="[^"]*"/, "").replace(new RegExp(` width="${SIZE}" height="${SIZE}"`), ' style="width: 100%; height: auto; display: block;"');
   return `<section class="block avoid">
-  <div class="block-head"><div>${lab("share it, or don't")}<h2>Aggregates only.</h2></div></div>
+  <div class="block-head"><div>${lab("the card")}</div></div>
   <div class="share-wrap">${svg}</div>
-  <div class="fine mono-sm">actuals share · writes share.svg and share.txt next to this report</div>
+  <div class="fine mono-sm">1080 by 1080 PNG · aggregates only · actuals share writes share.svg and share.txt beside this file</div>
 </section>`;
 }
 
@@ -326,12 +359,13 @@ const GLOSS: Record<string, string> = {
 };
 
 /**
- * The foot: the marks legend as one line, once, and one closed disclosure that holds every
- * explainer the sections used to carry, then the method, the limitations, the fate states
- * and the tools. Numbers first, words second; the words are all still here.
+ * The foot: the method in one line with every long note folded under it, the re-read habit beside
+ * it, the limitations registry verbatim behind one disclosure that opens in print, then the marks
+ * legend and the fate states. Numbers first, words second; the words are all still here.
  */
-function sMethod(r: Report, o: RenderOpts): string {
+function sFoot(r: Report, o: RenderOpts): string {
   const li = (xs: string[]) => xs.map((x) => `<li>${esc(plain(x))}</li>`).join("");
+  const rereads = sRereads(r, o); // drawn before the legend is read, so a mark only it uses is still named
   const used = new Set(usedMarks);
   const legend = Object.entries(r.marks_legend).filter(([k]) => used.has(k)).map(([k, v]) => `<span>${mark(k)} ${esc(GLOSS[k] ?? plain(v))}</span>`).join("");
   const row = (label: string, text: string) => `<div class="lab">${esc(label)}</div><div class="muted">${text}</div>`;
@@ -346,20 +380,29 @@ function sMethod(r: Report, o: RenderOpts): string {
     row("fixes", "Each one is written for this repository. Apply with one confirm; undo restores the file byte for byte."),
     row(o.app ? "the sticker" : "the card", `Aggregates only: never a prompt, a path, a file name, or a line of code.${o.app ? " Share hands the PNG to Instagram or X on a phone; the X button opens a post with the text card, attach the copied sticker." : ""}`),
   ].join("");
-  return `<section class="disclosures avoid">
+  return `<section class="disclosures foot avoid">
+  <div class="two">
+    <div class="col">${lab("method")}
+      <p class="fine">Measured from your transcripts, this repository's git history and the files on disk today; tokens priced at list rates ${esc(r.rates_version)}. No model called.</p>
+      <details class="fold"><summary>how this was measured, number by number</summary>
+        <div class="kv notes">${notes}</div>
+        <ul>${li(r.method)}</ul>
+      </details>
+    </div>
+    ${rereads}
+  </div>
+  <details class="lim"><summary>${lab("limits")}<span class="sum-title">what this report cannot see</span></summary><ul>${li(r.limitations)}</ul></details>
   <div class="fine legend-line">${legend}</div>
-  <details><summary>${lab("method")}<span class="sum-title">How this was measured</span></summary>
-    <div class="kv notes">${notes}</div>
-    <ul>${li(r.method)}</ul>
-    <div class="lab">what this report cannot see</div><ul>${li(r.limitations)}</ul>
-    <div class="fine mono-sm">fate states: ${r.fate_states.map((f) => esc(FATE_TEXT[f] ?? f.replace(/_/g, " "))).join(" · ")}</div>
-    <div class="fine">tools: ${r.tools.map(esc).join(", ")} · versions seen: ${Object.values(r.tool_versions).flat().map(esc).join(", ") || "none"} · schema ${esc(r.schema_version)}</div>
-  </details>
+  <div class="fine mono-sm">fate states: ${r.fate_states.map((f) => esc(FATE_TEXT[f] ?? f.replace(/_/g, " "))).join(" · ")} · tools: ${r.tools.map(esc).join(", ")} · versions seen: ${Object.values(r.tool_versions).flat().map(esc).join(", ") || "none"} · schema ${esc(r.schema_version)}</div>
 </section>`;
 }
 
 function sClosing(r: Report, o: RenderOpts): string {
-  const left = o.hosted ? "What left the machine: this redacted report and one PNG" : `What left your machine: ${esc(r.left_machine)}`;
+  const left = o.hosted
+    ? "What left the machine: this redacted report and one PNG"
+    : o.numbersShared
+      ? `What left your machine: ${int(o.numbersShared.count)} numbers at ${esc(dateTime(o.numbersShared.at))}, shown before they went`
+      : `What left your machine: ${esc(r.left_machine)}`;
   return `<footer class="closing"><span>${left}. Tokens spent making this: ${r.tokens_spent_making_this}.</span><span class="rail-strong">measured by actuals</span></footer>`;
 }
 
@@ -425,10 +468,14 @@ h2 { font-family: var(--sans); font-size: 26px; font-weight: 500; line-height: 1
 .peak-row { display: grid; grid-template-columns: 56px minmax(0, 1fr) 36px 70px; gap: 12px; align-items: center; }
 .peak-bar { height: 6px; background: var(--grid); display: block; } .peak-bar i { display: block; height: 6px; background: var(--d2); }
 .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; }
+/* what the spend turned into, under the sessions: the fate bar is narrow, the model table is not */
+.yield { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 48px; align-items: start; }
 .col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .segbar { display: flex; height: 14px; gap: 2px; } .segbar i { display: block; height: 14px; }
 .kv { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 6px 14px; align-items: baseline; }
 .kv .num { text-align: right; color: var(--ink); }
+/* a re-read path has no spaces to break at: let it wrap rather than widen the page on a phone */
+.kv .mono-sm { overflow-wrap: anywhere; }
 .dot { display: inline-block; width: 8px; height: 8px; margin-left: 8px; vertical-align: middle; }
 .kv.legend { grid-template-columns: 130px minmax(0, 1fr); }
 .table { display: grid; gap: 0 16px; align-items: center; border-top: 1px solid var(--rule); }
@@ -439,6 +486,14 @@ h2 { font-family: var(--sans); font-size: 26px; font-weight: 500; line-height: 1
 .models .kbar { vertical-align: baseline; position: relative; top: -1px; }
 .kbar { display: inline-block; width: 110px; height: 4px; background: var(--grid); vertical-align: middle; margin-right: 10px; } .kbar i { display: block; height: 4px; background: var(--d1); }
 .sessions { display: block; }
+details.more { margin-top: -4px; }
+details.more > summary { cursor: pointer; list-style: none; font-family: var(--mono); font-size: 13px; letter-spacing: 0.06em; color: var(--muted); padding: 12px 0; border-bottom: 1px solid var(--rule); }
+details.more > summary::-webkit-details-marker { display: none; }
+details.more > summary::after { content: " +"; }
+details.more[open] > summary::after { content: " \u2212"; }
+details.more > summary:hover { color: var(--ink); }
+details.more > .table { border-top: 0; }
+summary:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
 .sessions .th-row { display: grid; grid-template-columns: 56px minmax(0, 1fr) 150px 70px 90px 160px 160px; gap: 16px; }
 .sessions .th-row .th { border-bottom: 1px solid var(--rule); }
 .sessions .tr { display: grid; grid-template-columns: 56px minmax(0, 1fr) 150px 70px 90px 160px 160px; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--grid); align-items: start; }
@@ -451,8 +506,8 @@ h2 { font-family: var(--sans); font-size: 26px; font-weight: 500; line-height: 1
 .costcell { display: flex; align-items: center; gap: 10px; padding-top: 5px; }
 .cbar { flex: 1; height: 4px; background: var(--grid); } .cbar i { display: block; height: 4px; background: var(--d1); }
 .costcell .num { width: 56px; text-align: right; }
-.outcome { display: flex; flex-direction: column; gap: 3px; }
-.outcome .state { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; color: var(--text); }
+.outcome { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.outcome .state { font-family: var(--mono); font-size: 13px; letter-spacing: 0.06em; color: var(--text); white-space: nowrap; }
 .outcome.warn .state { color: var(--warn); }
 .fixes { display: flex; flex-direction: column; }
 .fix { display: grid; grid-template-columns: 56px minmax(0, 1fr) 470px; gap: 24px; border-top: 1px solid var(--rule); padding: 22px 0; align-items: start; }
@@ -469,16 +524,27 @@ ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13px; line-h
 .insight { display: grid; grid-template-columns: 10px minmax(0, 1fr); gap: 12px; align-items: start; font-size: 13.5px; line-height: 1.5; color: var(--muted); }
 .insight i { display: block; width: 6px; height: 6px; margin-top: 7px; background: var(--mark); }
 .disclosures { display: flex; flex-direction: column; border-top: 1px solid var(--rule); padding-top: 14px; }
-.disclosures details { border-bottom: 1px solid var(--grid); padding: 14px 0; }
-.disclosures summary { cursor: pointer; list-style: none; display: flex; gap: 18px; align-items: baseline; }
-.disclosures summary::-webkit-details-marker { display: none; }
-.disclosures summary::after { content: "+"; margin-left: auto; font-family: var(--mono); color: var(--muted); }
-.disclosures details[open] summary::after { content: "−"; }
+.disclosures > details { border-bottom: 1px solid var(--grid); padding: 14px 0; }
+.disclosures > details > summary { cursor: pointer; list-style: none; display: flex; gap: 18px; align-items: baseline; }
+.disclosures > details > summary::-webkit-details-marker { display: none; }
+.disclosures > details > summary::after { content: "+"; margin-left: auto; font-family: var(--mono); color: var(--muted); }
+.disclosures > details[open] > summary::after { content: "−"; }
+.foot { gap: 28px; }
+.foot .two { gap: 56px; }
 .sum-title { font-size: 15px; color: var(--text); }
-.disclosures ul, .disclosures .kv, .disclosures .lab { margin-top: 12px; max-width: 72ch; }
-@media print { .disclosures details, details.fold { display: block; } .disclosures details > *:not(summary), details.fold > *:not(summary) { display: block; } }
+.disclosures > details > ul, .disclosures .notes { margin-top: 12px; max-width: 72ch; }
+.disclosures p.fine { margin: 10px 0 0; max-width: 62ch; }
+/* print opens every disclosure: the limitations registry must be on the page a reader prints.
+   The UA hides a closed details through its content slot, so the pseudo is the rule that works;
+   the display rule under it stays as the fallback for an engine that does not expose it. */
+@media print {
+  .disclosures > details::details-content, details.fold::details-content, details.more::details-content { content-visibility: visible; display: block; }
+  .disclosures > details, details.fold, details.more { display: block; }
+  .disclosures > details > *:not(summary), details.fold > *:not(summary), details.more > *:not(summary) { display: block; }
+}
 .closing { margin-top: auto; display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; font-size: 10.5px; letter-spacing: 0.06em; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
 @media (max-width: 1120px) {
+  .yield { grid-template-columns: 1fr; gap: 36px; }
   .readouts { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .ro { border-right: 0; padding-left: 0; }
   .ro-big { grid-column: 1 / -1; padding-right: 0; }
@@ -496,7 +562,9 @@ ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13px; line-h
   .tl-narrow { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .sessions .th-row { display: none; }
   .sessions .tr { grid-template-columns: 56px minmax(0, 1fr); }
+  .sessions .tr > :nth-child(n+3) { grid-column: 2; }
   .claimed { white-space: normal; }
+  .yield { grid-template-columns: 1fr; gap: 32px; }
   .fix { grid-template-columns: 40px minmax(0, 1fr); }
   .fix pre { grid-column: 2; }
   .models { grid-template-columns: minmax(0, 1fr) 50px 70px 70px 70px 140px; }
@@ -565,18 +633,17 @@ ${CSS}${opts.app || opts.embed ? APP_CSS : ""}
 <body>
 <div class="page">
 ${sRail(r, opts)}
-${opts.app ? sPicker(r, opts.app) : ""}
+${opts.app ? sPicker(r, opts.app, Boolean(opts.numbersShared)) : ""}
 ${opts.app ? sTabs() : ""}
 ${opts.app ? sLive(r, opts.app) : ""}
 ${opts.app ? '<div id="panel-report">' : ""}
 ${sReadouts(r, opts)}
-${sInstrument(r, opts)}
-${sFateAndRereads(r, opts)}
-${sModels(r)}
 ${sSessions(r, opts)}
+${sYield(r)}
 ${sFixes(r, opts)}
+${sInstrument(r, opts)}
 ${opts.app ? sSticker(r) : sShare(r)}
-${sMethod(r, opts)}
+${sFoot(r, opts)}
 ${sClosing(r, opts)}
 ${opts.app ? "</div>" : ""}
 </div>

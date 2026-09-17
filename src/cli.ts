@@ -13,7 +13,8 @@ import { applyWatch, concurrencyCap, describeWatch, eventFrom, hudLine, isWatchi
 import { shimStatus } from "./watch/shim.js";
 import { startHudServer } from "./watch/hud-server.js";
 import { confirm } from "./fix/index.js";
-import { clearLicence, DEFAULT_HOST, describeUpload, postLink, readLicence, redactedForUpload, saveLicence, uploadHosted } from "./hosted/index.js";
+import { clearLicence, DEFAULT_HOST, describeUpload, netMessage, postLink, readLicence, redactedForUpload, saveLicence, uploadHosted } from "./hosted/index.js";
+import { alreadyAsked, buildNumbersPayload, countNumbers, describeNumbers, numbersHost, readNumbersSetting, sendNumbers, shareAfterRun, writeNumbersSetting } from "./numbers/index.js";
 import { disconnectPairing, runLogin } from "./hosted/pair.js";
 import { loadRates } from "./rates/index.js";
 import { discover, KNOWN_CLAUDE_CODE_VERSIONS } from "./read/claude_code/index.js";
@@ -26,7 +27,8 @@ import type { Session, Run } from "./schema/ledger.js";
 import { LabelState } from "./schema/ledger.js";
 import { ReportSchema, type Report } from "./schema/socket.js";
 
-const HELP = `actuals: see what your coding agents actually shipped. Local. Nothing leaves your machine.
+const HELP = `actuals: see what your coding agents actually shipped.
+Nothing leaves your machine unless you choose to share your numbers, and you see them first.
 
   npx actuals                 run on the current repo, open the app on 127.0.0.1 (loopback only)
   actuals run [--since 30d] [--all-projects] [--redact] [--generous] [--no-open] [--json]
@@ -41,6 +43,8 @@ const HELP = `actuals: see what your coding agents actually shipped. Local. Noth
   actuals undo <fix-id> [--force]      restore byte-identical; refuses if the file changed since, unless forced
   actuals share                        the aggregates-only card as share.svg and share.txt
   actuals share --hosted [--yes] [--sticker <png>]   upload the redacted report for a share link; shows what leaves first (works once the site update ships)
+  actuals share --numbers [--yes]      turn on numbers sharing: prints the exact payload, asks once, sends after every run
+  actuals share --numbers --off        turn it off; --numbers --show prints the payload without sending
   actuals login [--no-open]            connect this computer to your account, no key to copy (works once the site update ships)
   actuals logout                       disconnect this computer, remove the stored key (works once the site update ships)
   actuals licence <key> | --clear      store a licence key by hand (for a headless machine or CI)
@@ -58,15 +62,6 @@ function scopeFrom(values: Record<string, unknown>): Scope {
   return { repoPath, repoId, originUrl, allProjects: values["all-projects"] === true, since: parseSince(typeof values["since"] === "string" ? values["since"] : undefined), tools: ["claude_code"], redact: values["redact"] === true, generous: values["generous"] === true };
 }
 
-/** A network failure should read as one sentence naming the host and the next step, never a Node error like "fetch failed". */
-function netMessage(e: unknown, host: string): string {
-  const m = e instanceof Error ? e.message : String(e);
-  if (/fetch failed|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|getaddrinfo|network|socket hang up|und_err|failed to fetch/i.test(m)) {
-    return `could not reach ${host.replace(/^https?:\/\//, "")}; check your connection and try again.`;
-  }
-  return m;
-}
-
 function openFile(p: string): void {
   const cmd = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
   try { spawn(cmd, [p], { detached: true, stdio: "ignore" }).unref(); } catch { /* not fatal */ }
@@ -80,14 +75,16 @@ function isVsCode(): boolean {
 }
 
 /** Serve the app on loopback, open the browser unless told not to, and stay up until the page goes away or Ctrl-C. */
-async function serveApp(scope: Scope, stateDir: string, runId: string | null, values: Record<string, unknown>): Promise<number> {
+async function serveApp(scope: Scope, stateDir: string, runId: string | null, values: Record<string, unknown>, extra: { numbersShared?: { count: number; at: string } | null; afterOpen?: () => Promise<void> } = {}): Promise<number> {
   const port = typeof values["port"] === "string" ? Number(values["port"]) : 0;
   if (!Number.isInteger(port) || port < 0 || port > 65535) { console.log("--port must be a whole number between 0 and 65535"); return 2; }
-  const app = await startApp({ scope, stateDir, runId, port });
+  const app = await startApp({ scope, stateDir, runId, port, numbersShared: extra.numbersShared ?? null });
   if (values["no-open"] !== true) openFile(app.url);
   // the command holds the terminal while it serves; say so, or it reads as a hang
   const stops = Math.round(IDLE_EXIT_MS / 6000) / 10;
   console.log(`  app on ${app.url.replace(/\/$/, "")} \u00b7 ctrl-c to stop \u00b7 it stops itself ${stops} minutes after the tab closes`);
+  // the report is open; only now the two once-per-install lines, so neither delays it
+  if (extra.afterOpen) await extra.afterOpen();
   await app.idle;
   console.log("  page closed; stopped serving");
   return 0;
@@ -115,14 +112,50 @@ function latestReport(stateDir: string): { report: Report; runId: string } | nul
   return { report: ReportSchema.parse(JSON.parse(readFileSync(p, "utf8"))), runId: id };
 }
 
+/** The one label for the host, as a person would say it. */
+function hostLabel(): string { return numbersHost().replace(/^https?:\/\//, "").replace(/\/$/, ""); }
+const editorNow = (): "terminal" | "vscode" => (isVsCode() ? "vscode" : "terminal");
+const OFF_HINT = "(actuals share --numbers --off to stop)";
+
+/**
+ * Once per install, in a terminal, and only after the report has opened: the star line, then
+ * the numbers question of the sharing design. Neither line ever appears again, neither
+ * appears under --json, --no-open or without a terminal, and neither delays the report.
+ */
+async function firstRunLines(ctx: { report: Report; scope: Scope; stateDir: string; sessions: Array<{ tool_version: string | null }>; runMs: number }): Promise<void> {
+  if (!process.stdin.isTTY || !process.stdout.isTTY) return;
+  let setting = readNumbersSetting();
+  if (!setting?.star_shown_at) {
+    console.log("  if it was useful, a star helps others find it: github.com/namansharma14/actuals");
+    setting = writeNumbersSetting(STATE_ROOT, { star_shown_at: new Date().toISOString() });
+  }
+  if (alreadyAsked(setting)) return;
+  const payload = buildNumbersPayload(ctx.report, { installId: setting.install_id, scope: ctx.scope, stateDir: ctx.stateDir, sessions: ctx.sessions, editor: editorNow(), watchOn: isWatching(), runMs: ctx.runMs });
+  console.log("");
+  for (const line of describeNumbers(payload, numbersHost())) console.log(`  ${line}`);
+  const yes = await confirm("share your numbers after every run? [y/N] ");
+  writeNumbersSetting(STATE_ROOT, { asked_at: new Date().toISOString(), share: yes });
+  if (!yes) { console.log("  not shared. `actuals share --numbers` turns it on whenever you want."); return; }
+  try {
+    await sendNumbers({ host: numbersHost(), payload });
+    console.log(`  shared: ${countNumbers(payload)} numbers to ${hostLabel()} ${OFF_HINT}`);
+  } catch (e) { console.log(`  ${netMessage(e, numbersHost())}`); }
+}
+
 async function cmdRun(values: Record<string, unknown>): Promise<number> {
   const scope = scopeFrom(values);
   const t0 = Date.now();
   const res = await runPipeline(scope);
   const h = res.report.headline;
   const empty = res.ledger.sessions.length === 0;
+  const runMs = Date.now() - t0;
+  // the report is written, so the send happens here in the command, never in the pipeline,
+  // and only when the user has turned sharing on. It never blocks the report or the app.
+  const shared = empty
+    ? { sent: false, count: 0, at: null as string | null, error: undefined as unknown }
+    : await shareAfterRun({ report: res.report, scope, stateDir: res.stateDir, sessions: res.ledger.sessions, editor: editorNow(), watchOn: isWatching(), runMs });
   if (values["json"] === true) {
-    console.log(JSON.stringify({ report: path.join(res.dir, "report.json"), html: res.htmlPath, sessions: res.ledger.sessions.length }));
+    console.log(JSON.stringify({ report: path.join(res.dir, "report.json"), html: res.htmlPath, sessions: res.ledger.sessions.length, numbers_shared: shared.sent ? shared.count : 0 }));
     return empty ? 2 : 0;
   }
   if (empty) {
@@ -141,15 +174,52 @@ async function cmdRun(values: Record<string, unknown>): Promise<number> {
     console.log("No Claude Code sessions in this folder. Here is every project on this machine.");
     return serveApp(scope, res.stateDir, res.ledger.run_id, values);
   }
-  console.log(`actuals · ${scope.repoPath} · ${res.report.share.period} · ran locally, nothing uploaded`);
+  console.log(`actuals · ${scope.repoPath} · ${res.report.share.period} · ${shared.sent ? `ran locally · shared ${shared.count} numbers` : "ran locally, nothing uploaded"}`);
   console.log(`  sessions ${res.ledger.sessions.length} · agent runs ${res.ledger.runs.length} · done in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
   console.log(`  ${money(h.cost_usd.value)} of tokens at list rates [${h.cost_usd.mark}] · ${h.commits.value} commits [${h.commits.mark}] · ${money(h.cost_per_commit.value)} per commit`);
   console.log(`  ${h.files_alive.alive} of ${h.files_alive.written} files agents wrote are still on disk [${h.files_alive.mark}] · ${h.runs_no_fate.count} runs with no traceable fate [measured], ${money(h.runs_no_fate.cost_usd)} at list rates [estimated]`);
   if (res.ledger.warnings.length) console.log(`  ${res.ledger.warnings.length} warnings (see ${path.join(res.dir, "warnings.txt")})`);
   console.log(`  report: ${res.htmlPath}`);
   if (res.report.fixes.some((f) => f.available)) console.log(`  fixes: ${res.report.fixes.filter((f) => f.available).length} derived; run \`actuals fix\` to see them`);
+  if (shared.sent) console.log(`  shared: ${shared.count} numbers to ${hostLabel()} ${OFF_HINT}`);
+  else if (shared.error !== undefined) console.log(`  ${netMessage(shared.error, numbersHost())}`);
   if (values["no-open"] === true) return 0;
-  return serveApp(scope, res.stateDir, res.ledger.run_id, values);
+  return serveApp(scope, res.stateDir, res.ledger.run_id, values, {
+    numbersShared: shared.sent && shared.at ? { count: shared.count, at: shared.at } : null,
+    // the report is already open: these two lines can never be allowed to end the session
+    afterOpen: async () => { try { await firstRunLines({ report: res.report, scope, stateDir: res.stateDir, sessions: res.ledger.sessions, runMs }); } catch { /* not worth a word */ } },
+  });
+}
+
+/**
+ * `actuals share --numbers`: print the real numbers for the latest run, ask once, and on yes
+ * send them now and after every run until `--off`. `--show` prints and sends nothing.
+ */
+async function cmdNumbers(values: Record<string, unknown>): Promise<number> {
+  const host = numbersHost();
+  if (values["off"] === true) {
+    writeNumbersSetting(STATE_ROOT, { share: false, asked_at: new Date().toISOString() });
+    console.log("numbers sharing is off. Nothing leaves your machine unless you choose to share your numbers, and you see them first.");
+    return 0;
+  }
+  const l = needLatest(); if (!l) return 2;
+  const setting = writeNumbersSetting(STATE_ROOT, {});
+  const sessions = readEntity<Session>(l.stateDir, l.runId, "sessions");
+  const payload = buildNumbersPayload(l.report, { installId: setting.install_id, scope: scopeFrom(values), stateDir: l.stateDir, sessions, editor: editorNow(), watchOn: isWatching(), runMs: null });
+  for (const line of describeNumbers(payload, host)) console.log(`  ${line}`);
+  if (values["show"] === true) { console.log("  nothing was sent. `actuals share --numbers` turns sharing on."); return 0; }
+  const ok = values["yes"] === true || (await confirm("share your numbers after every run? [y/N] "));
+  if (!ok) {
+    writeNumbersSetting(STATE_ROOT, { share: false, asked_at: new Date().toISOString() });
+    console.log(`not turned on${process.stdin.isTTY ? "" : " (no TTY; pass --yes to turn it on)"}`);
+    return 2;
+  }
+  writeNumbersSetting(STATE_ROOT, { share: true, asked_at: new Date().toISOString() });
+  try {
+    await sendNumbers({ host, payload });
+    console.log(`shared: ${countNumbers(payload)} numbers to ${hostLabel()} ${OFF_HINT}`);
+    return 0;
+  } catch (e) { console.log(netMessage(e, host)); return 1; }
 }
 
 async function cmdDoctor(): Promise<number> {
@@ -185,10 +255,14 @@ async function cmdDoctor(): Promise<number> {
   console.log(`  codex: ${cx.installed ? "" : "not installed · "}${cx.note}`);
   console.log(`  git: ${git(["--version"], cwd) ?? "not found"}`);
   console.log(`  state: ${STATE_ROOT} (${existsSync(STATE_ROOT) ? "exists" : "will be created"}; delete it to remove everything actuals stores)`);
+  const numbers = readNumbersSetting();
+  console.log(numbers && alreadyAsked(numbers)
+    ? `  numbers sharing: ${numbers.share ? "on" : "off"} · install id ${numbers.install_id} · turn off with \`actuals share --numbers --off\`; \`rm -rf ~/.actuals\` deletes the id`
+    : "  numbers sharing: not asked yet · off until you say yes; `actuals share --numbers` prints the exact numbers first");
   console.log(`  watch: ${isWatching() ? "on (statusline HUD and hooks installed; live ledger under each repo's state dir)" : "off (actuals watch installs the always-on status line)"}`);
   const shim = shimStatus();
   console.log(`  watch runs: ${shim.entry} ${shim.resolves ? `(resolves to ${shim.target})` : "(not there yet; actuals watch puts a copy of this version behind it)"}`);
-  console.log("  network: none, except actuals login, logout and share --hosted, each only when you run it and each says what it sends first; telemetry: none");
+  console.log("  network: none unless you start it: actuals login, logout, share --hosted, and share --numbers while you have it on; each says what it sends first. Telemetry: none.");
   return 0;
 }
 
@@ -216,7 +290,7 @@ async function main(): Promise<number> {
   try {
     parsed = parseArgs({
       args: process.argv.slice(2), allowPositionals: true, strict: true,
-      options: { since: { type: "string" }, "all-projects": { type: "boolean" }, redact: { type: "boolean" }, generous: { type: "boolean" }, "no-open": { type: "boolean" }, json: { type: "boolean" }, "dry-run": { type: "boolean" }, yes: { type: "boolean" }, "no-hud": { type: "boolean" }, serve: { type: "boolean" }, force: { type: "boolean" }, hosted: { type: "boolean" }, sticker: { type: "string" }, clear: { type: "boolean" }, port: { type: "string" }, out: { type: "string" }, ledger: { type: "boolean" }, embed: { type: "boolean" }, version: { type: "boolean", short: "v" }, help: { type: "boolean", short: "h" } },
+      options: { since: { type: "string" }, "all-projects": { type: "boolean" }, redact: { type: "boolean" }, generous: { type: "boolean" }, "no-open": { type: "boolean" }, json: { type: "boolean" }, "dry-run": { type: "boolean" }, yes: { type: "boolean" }, "no-hud": { type: "boolean" }, serve: { type: "boolean" }, force: { type: "boolean" }, hosted: { type: "boolean" }, numbers: { type: "boolean" }, off: { type: "boolean" }, show: { type: "boolean" }, sticker: { type: "string" }, clear: { type: "boolean" }, port: { type: "string" }, out: { type: "string" }, ledger: { type: "boolean" }, embed: { type: "boolean" }, version: { type: "boolean", short: "v" }, help: { type: "boolean", short: "h" } },
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -344,6 +418,7 @@ async function main(): Promise<number> {
       const p = saveLicence(key); console.log(`stored at ${p} (mode 600). It is sent only with \`actuals share --hosted\`.`); return 0;
     }
     case "share": {
+      if (values["numbers"] === true) return cmdNumbers(values);
       if (values["hosted"] === true) {
         // the one upload: re-run redacted in memory, show what leaves, one confirm, post
         const key = readLicence();

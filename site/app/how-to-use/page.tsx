@@ -5,7 +5,7 @@ import { Shell } from "../../components/shell";
 export const dynamic = "force-static";
 
 const LEDE =
-  "Actuals reads the Claude Code sessions already on your machine and tells you what your agents actually shipped: what was kept, what died, what it cost. One command, about a second, nothing leaves the computer.";
+  "Actuals reads the Claude Code sessions already on your machine and tells you what your agents actually shipped: what was kept, what died, what it cost. One command, about a second. Nothing leaves your machine unless you choose to share your numbers, and you see them first.";
 
 export const metadata: Metadata = {
   title: "How to use Actuals",
@@ -334,8 +334,10 @@ export default function HowToUse() {
             </tbody>
           </table>
           <p className="ac-guide-note">
-            Nothing leaves your machine. The report, the labels and the fixes are files in your repository and your home
-            folder.
+            Nothing leaves your machine unless you choose to share your numbers, and you see them first. The numbers
+            are the card&apos;s aggregates plus versions; <code>actuals share --numbers</code> turns sharing on after
+            showing you the exact payload, <code>actuals share --numbers --off</code> turns it off, and the
+            report&apos;s top line says when it is on.
           </p>
         </section>
       </div>

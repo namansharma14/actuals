@@ -1,6 +1,6 @@
 # Actuals
 
-> See what your agents actually shipped. One command reads your Claude Code sessions and your git history, right on your machine, and shows what the agents actually left behind: what was kept, what got thrown away, what quietly died, and what it cost. The report is a file you own, and nothing leaves your computer.
+> See what your agents actually shipped. One command reads your Claude Code sessions and your git history, right on your machine, and shows what the agents actually left behind: what was kept, what got thrown away, what quietly died, and what it cost. The report is a file you own. Nothing leaves your machine unless you choose to share your numbers, and you see them first.
 
 Run it: `npx actuals` (Node 20 or newer). It reads the sessions already on your disk and opens a report on 127.0.0.1. No sign up, no key, no upload.
 
@@ -11,6 +11,7 @@ Run it: `npx actuals` (Node 20 or newer). It reads the sessions already on your 
 - Every agent drawn to time: how many were alive minute by minute, which ones died, which model, who started it, and what it wrote.
 - A status line for the Claude Code status bar: `actuals watch`.
 - A card and a post text the command writes on your machine.
+- Opt-in numbers sharing: off by default, the exact payload shown before the first send, aggregates only.
 
 ## Pages
 

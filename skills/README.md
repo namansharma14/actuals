@@ -3,7 +3,8 @@
 One Claude Code skill so an agent can measure what the coding agents in a repository
 actually shipped, and act on it: run `npx actuals`, read the report, review the fixes
 actuals derives from the numbers and apply them on confirmation, and set up the always-on
-status line. Local, nothing uploaded, no model called.
+status line. No model is called. Nothing leaves your machine unless you choose to share your
+numbers, and you see them first.
 
 ## Install
 

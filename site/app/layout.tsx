@@ -2,11 +2,26 @@ import type { Metadata } from "next";
 import { Instrument_Serif } from "next/font/google";
 import { SITE_HEAD_CSS } from "../lib/theme";
 import { SITE_FONT_PRELOAD } from "../lib/site-fonts";
+import pkg from "../../package.json";
 import "./site.css";
 
 const SITE = "https://getactuals.net";
 const DESCRIPTION =
-  "One command reads your Claude Code sessions and git history on your machine and shows what the agents actually left behind: what was kept, what got thrown away, what quietly died, and what it cost. Nothing leaves your computer.";
+  "One command reads your Claude Code sessions and git history on your machine and shows what the agents actually left behind: what was kept, what got thrown away, what quietly died, and what it cost. Nothing leaves your machine unless you choose to share your numbers, and you see them first.";
+
+/** The published npm package's own version, not the site's: this describes the CLI. */
+const SOFTWARE_LD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Actuals",
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "macOS, Linux, Windows",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  url: SITE,
+  downloadUrl: "https://www.npmjs.com/package/actuals",
+  softwareVersion: pkg.version,
+  description: DESCRIPTION,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
@@ -48,6 +63,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         {children}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(SOFTWARE_LD).replace(/</g, "\\u003c") }}
+        />
         {/* Vercel Web Analytics, cookieless: the script the platform serves on its own domain, only where it exists */}
         {process.env.VERCEL === "1" ? (
           <>

@@ -84,7 +84,7 @@ function esc(s: string): string {
 }
 function money(n: number): string { return n >= 100 ? `$${Math.round(n).toLocaleString("en-US")}` : `$${n.toFixed(2)}`; }
 
-export function sPicker(r: Report, app: AppRender): string {
+export function sPicker(r: Report, app: AppRender, numbersShared = false): string {
   const dates = app.catalog.map((s) => s.date).filter(Boolean).sort();
   const min = dates[0] ?? "", max = dates.at(-1) ?? "";
   const selected = new Set(app.scope.sessionIds ?? app.catalog.map((s) => s.id));
@@ -115,7 +115,7 @@ export function sPicker(r: Report, app: AppRender): string {
     <button type="button" class="btn" id="pk-run">re-run on this scope</button>
     <button type="button" class="btn ghost" id="pk-reset"${scoped ? "" : " disabled"}>everything</button>
     <span class="fine" id="pk-status">${scoped ? `this report is scoped to ${r.sessions.length} of ${m} sessions` : "runs locally in about a second"}</span>
-    <span class="fine">app on 127.0.0.1:${app.port} · nothing leaves this machine</span>
+    <span class="fine">app on 127.0.0.1:${app.port} · nothing leaves this machine${numbersShared ? " unless you share your numbers" : ""}</span>
   </div>
 </section>`;
 }
@@ -139,15 +139,15 @@ export function fixActions(fixId: string, available: boolean, applied: boolean):
   </div>`;
 }
 
-/** The X post intent: the text card only; the sticker PNG is attached by the user from the clipboard. */
+/** The X post intent: the text card only (it already ends with the command and the repository); the sticker PNG is attached by the user from the clipboard. */
 export function xIntentUrl(r: Report): string {
-  return "https://x.com/intent/post?text=" + encodeURIComponent(renderShareText(r) + "\n\nnpx actuals");
+  return "https://x.com/intent/post?text=" + encodeURIComponent(renderShareText(r));
 }
 
 /** The sticker section (app only): the card, rasterized in the browser for copy, share and save. */
 export function sSticker(r: Report): string {
   return `<section class="block avoid" id="sticker-block">
-  <div class="block-head"><div>${lab("the sticker")}<h2>Three numbers and the curve.</h2></div></div>
+  <div class="block-head"><div>${lab("the sticker")}</div></div>
   <div class="stk">
     <div class="stk-canvas"><canvas id="sticker" width="1080" height="1080" aria-label="sticker preview"></canvas></div>
     <div class="stk-side">

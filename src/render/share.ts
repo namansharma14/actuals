@@ -19,5 +19,6 @@ export function renderShareText(report: Report): string {
     `biggest agent tree: ${s.biggest_tree}`,
     `agent output with no fate: ${s.runs_no_fate} runs`,
     `measured by actuals`,
+    `npx actuals · github.com/namansharma14/actuals`,
   ].join("\n");
 }

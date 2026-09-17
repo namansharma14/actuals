@@ -6,7 +6,8 @@
 
 See what your coding agents actually shipped. Actuals reads the Claude Code sessions already
 on your machine and your git history, and reports what the agents left behind: what was kept,
-what died, and what it cost. One command, about a second, nothing leaves the computer.
+what died, and what it cost. One command, about a second. Nothing leaves your machine unless
+you choose to share your numbers, and you see them first.
 
 ## Run it
 
@@ -66,13 +67,24 @@ npx actuals --all-projects  the same across every project on the machine
 npx actuals watch           install the status line and the hooks that feed the Live tab
 npx actuals fix             apply the default fix after one confirm; undo <fix-id> restores it
 npx actuals share           write the card PNG and the post text, locally
-npx actuals doctor          say what it can read on this machine and confirm nothing touches the network
+npx actuals share --numbers turn on numbers sharing after seeing the exact numbers; --off stops it
+npx actuals doctor          say what it can read on this machine, and whether numbers sharing is on
 ```
 
 ## What leaves your machine
 
-Nothing. The report, the labels and the fixes are files in your repository and your home
-folder. No account, no upload, no model call. Tokens spent making the report: 0.
+Nothing leaves your machine unless you choose to share your numbers, and you see them first.
+The report, the labels and the fixes are files in your repository and your home folder. No
+account, no model call. Tokens spent making the report: 0.
+
+The numbers are the ones on the share card, plus versions: cost, commits, files written and
+still alive, runs with no fate, deaths, concurrency and depth, the model ids with a run count,
+and the actuals, Claude Code, Node and platform versions. Never a prompt, a path, a file name,
+a title, a commit message, a repository name, or a line of code.
+
+It is off until you say yes. `actuals share --numbers` prints the exact numbers and asks;
+`actuals share --numbers --show` prints them and sends nothing; `actuals share --numbers --off`
+turns it off. While it is on, the report says so and names what went.
 
 ## How it counts
 

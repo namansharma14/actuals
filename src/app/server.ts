@@ -49,6 +49,8 @@ export interface AppOptions {
   hostedOrigin?: string;
   /** the licence key to send (tests); default from ~/.actuals/licence */
   licenceKey?: string | null;
+  /** this run's numbers went to the site before the app opened (the command sends, never the app) */
+  numbersShared?: { count: number; at: string } | null;
 }
 
 export interface App {
@@ -120,6 +122,9 @@ export async function startApp(opts: AppOptions): Promise<App> {
   const launched = Date.now();
   // the redacted copy shown on the share-as-a-page preview is the copy that is sent on confirm
   let pendingHosted: { runId: string; report: Report } | null = null;
+  // the numbers of the run the command opened; a re-run from the picker is a different run
+  // and the app never sends, so the note goes away as soon as the page re-runs
+  let numbersShared: { count: number; at: string } | null = opts.numbersShared ?? null;
   let resolveIdle: () => void = () => {};
   const idle = new Promise<void>((res) => { resolveIdle = res; });
 
@@ -159,6 +164,7 @@ export async function startApp(opts: AppOptions): Promise<App> {
     catalog = catalogOf(res.report);
     currentScope = { since: null, until: null, sessionIds: null };
     pendingHosted = null;
+    numbersShared = null;
   }
 
   async function rerun(body: z.infer<typeof RunBody>): Promise<{ run_id: string; sessions: number; scoped: boolean }> {
@@ -176,6 +182,7 @@ export async function startApp(opts: AppOptions): Promise<App> {
     const scoped = set.length !== catalog.length;
     const res = await runPipeline({ ...baseScope, sessionIds: scoped ? set.map((s) => s.id) : null }, { stateDir, claudeRoot: opts.claudeRoot, updateLatest: !scoped });
     current = { runId: res.ledger.run_id, report: res.report };
+    numbersShared = null;
     currentScope = scoped ? { since, until, sessionIds: set.map((s) => s.id) } : { since: null, until: null, sessionIds: null };
     if (!scoped) catalog = catalogOf(res.report);
     return { run_id: res.ledger.run_id, sessions: res.report.sessions.length, scoped };
@@ -202,7 +209,7 @@ export async function startApp(opts: AppOptions): Promise<App> {
   }
 
   function page(port: number): string {
-    return renderHtml(current.report, { redact: baseScope.redact, app: { token, port, catalog, projects: projectRows(), project: currentProject, repoTab: repoTab(), scope: currentScope, applied: appliedFixIds(stateDir), staticPath: path.join(runDir(stateDir, current.runId), "report.html"), dailyKept: dailyKept() } });
+    return renderHtml(current.report, { redact: baseScope.redact, ...(numbersShared ? { numbersShared } : {}), app: { token, port, catalog, projects: projectRows(), project: currentProject, repoTab: repoTab(), scope: currentScope, applied: appliedFixIds(stateDir), staticPath: path.join(runDir(stateDir, current.runId), "report.html"), dailyKept: dailyKept() } });
   }
 
   function fixOrThrow(id: string): { fix: Report["fixes"][number]; changes: ReturnType<typeof planFixes> extends Map<string, infer V> ? V : never } {

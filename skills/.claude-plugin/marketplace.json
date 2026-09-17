@@ -9,7 +9,7 @@
     {
       "name": "actuals",
       "source": "./plugins/actuals",
-      "description": "Run actuals from inside a Claude Code or Codex session: measure what the agents shipped against what they claimed, review the derived fixes and apply them on confirmation, and set up the always-on meter. Local, nothing uploaded.",
+      "description": "Run actuals from inside a Claude Code or Codex session: measure what the agents shipped against what they claimed, review the derived fixes and apply them on confirmation, and set up the always-on status line. Nothing leaves your machine unless you choose to share your numbers, and you see them first.",
       "version": "0.1.0",
       "author": {
         "name": "Actuals"

@@ -37,7 +37,7 @@ threshold = 0
 enforced = true
 
 [g6_no_network]
-title = "No sockets except loopback: zero non-loopback connection attempts during run and the local app on 127.0.0.1 (redefined with D13, 2026-09-03)"
+title = "No sockets except loopback: zero non-loopback connection attempts during run and the local app on 127.0.0.1 (redefined with D13, 2026-09-03; measured with numbers sharing off, the default, 2026-09-15)"
 kind = "max"
 threshold = 0
 enforced = true

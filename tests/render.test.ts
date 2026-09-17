@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { ReportSchema, type Report } from "../src/schema/socket.js";
 import { renderHtml } from "../src/render/html.js";
+import { CSS } from "../src/render/html.js";
 import { renderShareText } from "../src/render/share.js";
 import { renderStickerSvg } from "../src/render/sticker.js";
 
@@ -88,6 +89,83 @@ describe("renderHtml", () => {
   });
 });
 
+/**
+ * The 2026-09-15 reorder: the alpha first, the instrument late, one disclosure for the limits.
+ * The site's iframe addresses #instrument, #sessions and #fixes, so the ids ride along unchanged.
+ */
+describe("the report opens on the alpha", () => {
+  const at = (id: string) => html.indexOf(id);
+  it("renders readouts, sessions, what the spend turned into, fixes, the instrument, the card, the foot, the closing line", () => {
+    const order = ['class="readouts', 'id="sessions"', 'class="yield', 'id="fixes"', 'id="instrument"', 'class="share-wrap"', 'class="disclosures foot', 'class="closing"'];
+    const seen = order.map(at);
+    for (const i of seen) expect(i).toBeGreaterThan(-1);
+    expect(seen).toEqual([...seen].sort((a, b) => a - b));
+    // the three anchors the site scrolls to are still ids on sections
+    for (const id of ["instrument", "sessions", "fixes"]) expect(html).toContain(`<section class="block break" id="${id}">`);
+  });
+
+  it("fate of runs sits beside kept work per dollar, directly under the sessions table", () => {
+    const y = html.slice(at('class="yield'), html.indexOf("</section>", at('class="yield')));
+    expect(y).toContain("fate of");
+    expect(y).toContain("kept work per dollar, by model");
+    expect(at('id="sessions"')).toBeLessThan(at('class="yield'));
+  });
+
+  it("shows the ten costliest sessions and folds the rest behind one counted disclosure", () => {
+    const rows = (t: string) => (t.match(/<div class="tr"/g) ?? []).length;
+    // the fixture has eight sessions, so nothing is folded yet
+    expect(html).not.toContain('<details class="more">');
+    expect(rows(html.slice(at('id="sessions"'), at('class="yield')))).toBe(report.sessions.length);
+    // a report with fourteen sessions opens on the ten that cost the most
+    const many: Report = { ...report, sessions: [...report.sessions, ...report.sessions.slice(0, 6).map((x, i) => ({ ...x, id: `dddddddd-0000-0000-0000-00000000000${i}`, title: `extra session ${i}`, cost_usd: 0.11 + i }))] };
+    const big = renderHtml(many, { redact: false });
+    const table = big.slice(big.indexOf('id="sessions"'), big.indexOf('class="yield'));
+    const cut = table.indexOf('<details class="more">');
+    expect(cut).toBeGreaterThan(-1);
+    expect(rows(table.slice(0, cut))).toBe(10);
+    expect(rows(table.slice(cut))).toBe(4);
+    expect(table).toContain("<summary>show all 14 sessions</summary>");
+    // costliest first: the cheapest four are the folded ones, and every row is still clickable data
+    const cheapest = [...many.sessions].sort((a, b) => a.cost_usd - b.cost_usd).slice(0, 4);
+    for (const c of cheapest) expect(table.slice(cut)).toContain(c.title);
+  });
+
+  it("the outcome is one word with its mark, and the evidence sentence rides in the cell title", () => {
+    for (const s of report.sessions) {
+      expect(html).toContain(`<div class="outcome ${s.outcome.state === "died" ? "warn" : ""}" title="${s.outcome.note.replace(/&/g, "&amp;").replace(/"/g, "&quot;")}"><span class="state">${s.outcome.state}</span>`);
+    }
+    // the sentence is no longer a second visible line under the word
+    expect(html).not.toContain(`<div class="outcome "><span class="state">`);
+  });
+
+  it("the limitations registry is verbatim behind one disclosure that opens in print", () => {
+    const lim = html.slice(html.indexOf('<details class="lim">'), html.indexOf("</details>", html.indexOf('<details class="lim">')));
+    expect(lim).toContain("what this report cannot see");
+    for (const l of report.limitations) expect(lim).toContain(l.replace(/&/g, "&amp;").replace(/'/g, "&#39;"));
+    // a closed details hides its content through the UA's content slot, so print must open that pseudo
+    expect(CSS).toMatch(/@media print \{[\s\S]*?details::details-content[\s\S]*?content-visibility: visible/);
+    expect(CSS).toContain("summary:focus-visible");
+  });
+});
+
+describe("numbers sharing (opt-in) says so in the rail and the closing line", () => {
+  const shared = renderHtml(report, { redact: false, numbersShared: { count: 24, at: "2026-09-15T09:31:00.000Z" } });
+  it("off: the rail keeps 0 bytes uploaded and the closing line says nothing left", () => {
+    expect(html).toContain("local · 0 bytes uploaded · 0 tokens spent");
+    expect(html).toContain("What left your machine: nothing. Tokens spent making this: 0.");
+  });
+  it("on: the rail counts the numbers and the closing line says when they went", () => {
+    expect(shared).toContain("local · shared 24 numbers · 0 tokens spent");
+    expect(shared).toContain("What left your machine: 24 numbers at 2026-09-15 09:31 UTC, shown before they went. Tokens spent making this: 0.");
+    expect(shared).not.toContain("0 bytes uploaded");
+  });
+  it("a hosted copy still says what a hosted copy did, sharing or not", () => {
+    const both = renderHtml(report, { redact: true, hosted: true, numbersShared: { count: 24, at: "2026-09-15T09:31:00.000Z" } });
+    expect(both).toContain("hosted copy · read locally · 0 tokens spent");
+    expect(both).toContain("What left the machine: this redacted report and one PNG.");
+  });
+});
+
 describe("renderHtml as a hosted copy", () => {
   const hosted = renderHtml(report, { redact: true, hosted: true });
   it("says what is true on a page that exists because the report was uploaded", () => {
@@ -112,6 +190,11 @@ describe("renderHtml in app mode", () => {
     expect(appHtml).toContain(`data-fix="${report.fixes[1]!.id}" data-applied="0"`);
     expect(appHtml).not.toContain(`data-fix="${report.fixes.find((f) => !f.available)!.id}"`);
     expect(appHtml).toContain("sessions with trees, click to draw");
+    // the sticker section's visible copy is one line plus its buttons
+    expect(appHtml).toContain('<div class="block-head"><div><div class="lab">the sticker</div></div></div>');
+    expect(appHtml).toContain("1080 by 1080 PNG · aggregates only");
+    expect(appHtml).toContain("app on 127.0.0.1:43123 · nothing leaves this machine");
+    expect(appHtml).not.toContain("unless you share your numbers");
     // the one absolute URL is the X post intent the user clicks; nothing else is network-shaped
     expect(appHtml).toMatch(/<a class="btn" id="stk-x" href="https:\/\/x\.com\/intent\/post\?text=[^"]+" target="_blank" rel="noopener noreferrer">/);
     // the card's XML namespace is an identifier, not an address; nothing fetches it
@@ -119,6 +202,10 @@ describe("renderHtml in app mode", () => {
     expect(appHtml).toContain('<canvas id="sticker"');
     expect(appHtml).not.toContain("@import");
     expect(appHtml).not.toContain(EM_DASH);
+  });
+  it("the app rail names sharing only when sharing is on", () => {
+    const shared = renderHtml(report, { redact: false, numbersShared: { count: 7, at: "2026-09-15T09:31:00.000Z" }, app: { token: "tok", port: 43123, catalog: [], projects: [], project: "", repoTab: { slug: "", sessions: 0 }, scope: { since: null, until: null, sessionIds: null }, applied: [], staticPath: "/tmp/x/report.html" } });
+    expect(shared).toContain("nothing leaves this machine unless you share your numbers");
   });
   it("the static render is unchanged by the app layer: no script, no picker", () => {
     expect(html).not.toContain("<script");
@@ -144,6 +231,8 @@ describe("the share card: renderStickerSvg / renderShareText", () => {
     }
     expect(shareText).toContain("measured by actuals");
     expect(shareText).toContain(String(s.biggest_tree)); // the card draws the tree instead of naming it
+    // the post ends with the command and the public repository, on one line, after the sign-off
+    expect(shareText.split("\n").slice(-2)).toEqual(["measured by actuals", "npx actuals · github.com/namansharma14/actuals"]);
   });
 
   it("the card is one dark composition with npx actuals as its call to action, legible in a phone screenshot", () => {
@@ -186,7 +275,8 @@ describe("no em dash anywhere in rendered output (e)", () => {
  * The report is numbers first, words second (founder, 2026-09-07: "extremely verbose"). This
  * counts the prose a reader sees by default (headings, paragraphs, list items, fine print and
  * notes outside closed disclosures; never code, SVG or data cells) and holds it under half of
- * what the page carried before the trim (static 417, app 503 on this fixture).
+ * what the page carried before the first trim (static 417, app 503 on this fixture), and under what the
+ * 2026-09-15 reorder measured (static 142, app 179).
  */
 describe("visible prose budget", () => {
   const words = (t: string) => t.replace(/<[^>]+>/g, " ").replace(/&[a-z#0-9]+;/g, " ").split(/\s+/).filter((w) => /[A-Za-z]/.test(w)).length;
@@ -199,15 +289,15 @@ describe("visible prose budget", () => {
     }
     return n;
   }
-  it("the static report shows under 210 words of prose by default", () => {
-    expect(visibleProse(html)).toBeLessThan(210);
+  it("the static report shows under 150 words of prose by default", () => {
+    expect(visibleProse(html)).toBeLessThan(150);
   });
-  it("the app page shows under 252 words of prose by default", () => {
+  it("the app page shows under 190 words of prose by default", () => {
     const appHtml = renderHtml(report, { redact: false, app: { token: "tok", port: 43123, catalog: report.sessions.map((s) => ({ id: s.id, date: s.date, title: s.title, cost_usd: s.cost_usd, agents: s.agents, peak_concurrency: s.peak_concurrency })), projects: [], project: "", repoTab: { slug: "", sessions: report.sessions.length }, scope: { since: null, until: null, sessionIds: null }, applied: [], staticPath: "/tmp/x/report.html" } });
-    expect(visibleProse(appHtml)).toBeLessThan(252);
+    expect(visibleProse(appHtml)).toBeLessThan(190);
   });
   it("the words moved, they were not removed: the folded explainers are still in the page", () => {
-    for (const s of ["How this was measured", "Cost per run is real", "one run, drawn to its start and end", "never a prompt, a path, a file name, or a line of code", "undo restores the file byte for byte"]) expect(html).toContain(s);
+    for (const s of ["how this was measured, number by number", "Cost per run is real", "one run, drawn to its start and end", "never a prompt, a path, a file name, or a line of code", "undo restores the file byte for byte"]) expect(html).toContain(s);
     expect(html).toContain("Run actuals app to click into any session.");
   });
 });

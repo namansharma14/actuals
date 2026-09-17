@@ -1,6 +1,6 @@
 {
   "name": "actuals",
-  "description": "Measure what your coding agents actually shipped. One skill so Claude Code or Codex can run actuals, read the report, propose the fixes it derives, apply them on confirmation, and set up the always-on meter. Local, nothing uploaded, no model called.",
+  "description": "Measure what your coding agents actually shipped. One skill so Claude Code or Codex can run actuals, read the report, propose the fixes it derives, apply them on confirmation, and set up the always-on status line. No model is called. Nothing leaves your machine unless you choose to share your numbers, and you see them first.",
   "version": "0.1.0",
   "author": {
     "name": "Actuals"

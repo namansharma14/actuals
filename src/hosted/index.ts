@@ -81,10 +81,19 @@ export function postLink(url: string): string {
   try { const u = new URL(url); u.searchParams.set("ref", "post"); return u.toString(); } catch { return url; }
 }
 
-/** POST the redacted socket and the sticker. The only network call this CLI makes, and only from here. */
+/** A network failure should read as one sentence naming the host and the next step, never a Node error like "fetch failed". */
+export function netMessage(e: unknown, host: string): string {
+  const m = e instanceof Error ? e.message : String(e);
+  if (/fetch failed|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|getaddrinfo|network|socket hang up|und_err|failed to fetch|aborted|timeout|timed out/i.test(m)) {
+    return `could not reach ${host.replace(/^https?:\/\//, "")}; check your connection and try again.`;
+  }
+  return m;
+}
+
+/** POST the redacted socket and the sticker. The only network call this CLI makes for a hosted run. */
 
 /** Same rule as the pairing calls: no plain-http host except loopback, and no redirects. */
-function assertHttpsHost(host: string): void {
+export function assertHttpsHost(host: string): void {
   let parsed: URL;
   try { parsed = new URL(host); } catch { throw new Error(`could not parse the host: ${host}`); }
   const loopback = parsed.hostname === "127.0.0.1" || parsed.hostname === "localhost" || parsed.hostname === "::1";

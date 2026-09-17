@@ -13,7 +13,7 @@ export const dynamic = "force-static";
 
 export const metadata: Metadata = {
   title: "Actuals: see what your agents actually shipped",
-  description: `One command reads your Claude Code sessions and git history on your own machine and shows what the agents actually left behind. ${L.agentRuns} agent runs, ${L.commits.text} commits, ${L.perCommit.text} of tokens each, from one real repository. Nothing is uploaded.`,
+  description: `One command reads your Claude Code sessions and git history on your own machine and shows what the agents actually left behind. ${L.agentRuns} agent runs, ${L.commits.text} commits, ${L.perCommit.text} of tokens each, from one real repository. Nothing leaves your machine unless you choose to share your numbers.`,
 };
 
 /**

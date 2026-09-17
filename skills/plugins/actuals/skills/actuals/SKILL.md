@@ -7,7 +7,8 @@ description: >
   rates, commits that stuck, which files agents wrote are still on disk, which runs died
   or left nothing, concurrency and depth, and kept work per dollar by model. It then
   surfaces the fixes actuals derives from those numbers and applies them on confirmation,
-  and can set up the always-on status line. Nothing leaves the machine. Use when the user asks
+  and can set up the always-on status line. Nothing leaves your machine unless you choose to
+  share your numbers, and you see them first. Use when the user asks
   what an agent actually did, what a session or a run cost, what shipped, what survived,
   which subagents died, cost per commit, or to review or clean up after a Claude Code or
   Codex session. Triggers on "actuals", "what did the agent actually do", "what did this
@@ -21,8 +22,9 @@ allowed-tools: Bash, Read
 
 `actuals` reads the Claude Code sessions already on this machine and the repository's git
 history, locally, and reports what the coding agents actually delivered against what they
-claimed. It runs no model, uploads nothing, and opens no network connection. Your job is to
-run it, read the result, and help the user act on it.
+claimed. It runs no model. Nothing leaves your machine unless you choose to share your
+numbers, and you see them first. Your job is to run it, read the result, and help the user
+act on it.
 
 ## Run it
 
@@ -113,4 +115,6 @@ editor. Only suggest these; do not install them without the user asking.
 - The tool spawns no agents and calls no model. Do not wrap it in one; just run it and read
   the file.
 - To share a report, `npx actuals share --hosted` lists exactly what would leave and waits
-  for one confirm. Nothing else ever leaves the machine.
+  for one confirm. `npx actuals share --numbers` turns on the opt-in sharing of the card's
+  aggregates after printing them in full; `--off` stops it. Nothing else ever leaves the
+  machine.

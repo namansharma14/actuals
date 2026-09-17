@@ -39,6 +39,7 @@ export function CommandPill({
                 setCopied(true);
                 /* the one thing we count: the command was copied */
                 window.va?.("event", { name: "copy" });
+                void fetch("/api/copied", { method: "POST", keepalive: true }).catch(() => undefined);
                 setTimeout(() => setCopied(false), 1800);
               },
               () => undefined,

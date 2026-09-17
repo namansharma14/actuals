@@ -36,7 +36,8 @@ export function Open() {
           <p className="sc-lede">
             Your coding agent says done. Actuals reads your Claude Code sessions and your git history, right on your
             machine, and shows what the agents actually left behind: what was kept, what got thrown away, what quietly
-            died, and what it cost. The report is a file you own, and nothing leaves your computer.
+            died, and what it cost. The report is a file you own. Nothing leaves your machine unless you choose to
+            share your numbers, and you see them first.
           </p>
           <div data-pill>
             <CommandPill command={COMMAND} />
