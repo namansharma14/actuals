@@ -26,30 +26,33 @@ npx actuals watch
 
 ## How to use it
 
-1. **Read the top line.** The first row is the whole story for the period: what the tokens
-   cost at list rates, how many commits the sessions made, the cost per commit, how many of
-   the files the agents wrote are still alive, and how many agent runs finished with nothing
-   to show. Anything marked `MEASURED` was read from transcripts and git; `ESTIMATED` means
-   priced at list rates. Change the dates and re-run; it takes about a second.
-2. **Pick which sessions count.** Two scopes: this repository, or every project on the
-   machine. The sessions control lets you untick any session, so one runaway night does not
-   colour a whole month.
-3. **Click a session.** It opens in a drawer: every agent run drawn to time, with its model,
-   its minutes, its cost, and what became of its work. Click a run to see which files it
-   wrote and how many git still tracks. `landed tracked` means the files are in git now; a
-   `died` run stopped without returning.
-4. **Say whether it mattered.** The tool measures what happened on disk and in git; only you
-   know whether the work mattered. Label the session in one click and add a line on why.
-   Labels stay on this machine and are never overwritten.
-5. **Watch a session live.** The `LIVE` tab draws the session running right now: agents
-   appear as they start, go warm the moment one dies, and the cost ticks. It works once
-   `npx actuals watch` has installed the hooks.
-6. **Apply a fix, or undo it.** The fixes are written from your own numbers. The first caps
-   the agent tree at what your machine survived, as two settings in `.claude/settings.json`.
-   Every fix shows its reason and the exact change before anything is written; one command
-   restores every file byte for byte.
-7. **Share the card.** Three numbers and the curve as a 1080 by 1080 PNG, aggregates only:
-   no file names, no prompts, no code. Copy it, save it, or post it.
+1. **Read the sentence.** The report opens on the overview: how many files your agents
+   wrote in this window and how many are still on disk, then the receipt for the period:
+   what the tokens cost at list rates, how many commits the sessions made, the cost per
+   commit, and how many agent runs finished with nothing to show. Anything marked
+   `MEASURED` was read from transcripts and git; `ESTIMATED` means priced at list rates.
+2. **Pick the scope.** `this repo` or `everywhere` in the top bar re-runs on this repository
+   or on every project on the machine. The box above the session list filters by title.
+3. **Open a session.** The list on the left is newest first, with cost, hours, agents and
+   the outcome. Click one, or press `j` and `k` to move through them. A session opens on
+   its verdict, then its agents drawn to time, then every run with its model, minutes,
+   cost and what it left behind: in git, on disk, nothing left, unknown, or died. A run
+   expands to the files it wrote.
+4. **Say whether it mattered.** The tool measures what happened on disk and in git; only
+   you know whether the work mattered. Label the session in one click (`l` cycles the
+   states) and add a line on why. Labels stay on this machine and are never overwritten.
+5. **Watch a session live.** `v` opens the live view: agents appear as they start, go
+   warm the moment one dies, and the cost ticks. It works once `npx actuals watch` has
+   installed the hooks.
+6. **Apply a fix, or undo it.** `f` opens the fixes, written from your own numbers. The
+   first caps the agent tree at what your machine survived, as two settings in
+   `.claude/settings.json`. Every fix shows its reason and the exact change before anything
+   is written; one command restores every file byte for byte.
+7. **Share the card.** `s` opens the card: three numbers and the curve as a 1080 by 1080
+   PNG, aggregates only: no file names, no prompts, no code. Copy it, save it, or post it.
+
+The badge in the top bar says what left your machine: `0 bytes uploaded`, or the count of
+numbers you chose to share. Click it for how each figure is counted.
 
 ## Terminal or VS Code
 

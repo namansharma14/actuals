@@ -73,6 +73,42 @@ function insightsClaim(sessionId: string, claudeRoot: string): Report["sessions"
 
 function money(n: number): number { return Math.round(n * 100) / 100; }
 
+/** The stand-in a session gets when nothing named it: "session 1a2b3c4d", with or without a suffix. */
+function idStandIn(id: string): string { return `session ${id.slice(0, 8)}`; }
+
+/**
+ * A title for a session the transcripts could not name, taken from the work itself: the first
+ * commit it made, else where its files went. No model, same input same answer. Returns null
+ * when the session left nothing to say, and the stand-in stays.
+ */
+function titleFromWork(commitSubject: string | null, written: Set<string>, repoPath: string): string | null {
+  if (commitSubject) {
+    const one = commitSubject.split("\n")[0]!.trim();
+    if (one) return `commit: ${one.length > 80 ? one.slice(0, 80).trimEnd() : one}`;
+  }
+  const byDir = new Map<string, number>();
+  for (const f of written) {
+    const inside = isInside(f, repoPath);
+    const rel = inside ? path.dirname(path.relative(repoPath, f)) : "";
+    const key = inside ? (rel === "" || rel === "." ? "." : rel) : "";
+    byDir.set(key, (byDir.get(key) ?? 0) + 1);
+  }
+  const top = [...byDir.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
+  if (!top) return null;
+  const [dir, n] = top;
+  const files = `${n} file${n === 1 ? "" : "s"}`;
+  if (dir === "") return `${files} outside the repository`;
+  return dir === "." ? `${files} in the repository root` : `${files} in ${dir}`;
+}
+
+/** The title a session row shows: the reader's, or one derived from the work when the reader had only the id. */
+function sessionTitle(id: string, title: string, commitSubject: string | null, written: Set<string>, repoPath: string): string {
+  const standIn = idStandIn(id);
+  if (title !== standIn && !title.startsWith(`${standIn} (`)) return title;
+  const derived = titleFromWork(commitSubject, written, repoPath);
+  return derived === null ? title : derived + title.slice(standIn.length);
+}
+
 export type Timeline = NonNullable<Report["burn"]["tree"]["timeline"]>;
 
 /**
@@ -102,6 +138,13 @@ export function buildReport(ledger: Ledger, scope: Scope, meta: { generatedAt: D
   for (const r of ledger.runs) { if (!runsBySession.has(r.session_id)) runsBySession.set(r.session_id, []); runsBySession.get(r.session_id)!.push(r); }
   const commitsBySession = new Map<string, number>();
   for (const c of ledger.commits) if (c.attribution === "inside_session" && c.session_id) commitsBySession.set(c.session_id, (commitsBySession.get(c.session_id) ?? 0) + 1);
+  // the first commit each session made, by author time: the work that names an unnamed session
+  const firstCommitBySession = new Map<string, { at: string; subject: string }>();
+  for (const c of ledger.commits) {
+    if (c.attribution !== "inside_session" || !c.session_id) continue;
+    const held = firstCommitBySession.get(c.session_id);
+    if (!held || c.author_time < held.at) firstCommitBySession.set(c.session_id, { at: c.author_time, subject: c.subject });
+  }
   const generousBySession = new Map<string, number>();
   for (const c of ledger.commits) if (c.attribution === "during_session_unattributed" && c.session_id) generousBySession.set(c.session_id, (generousBySession.get(c.session_id) ?? 0) + 1);
   const labelFor = (id: string) => ledger.labels.filter((l) => l.target === id).at(-1) ?? null;
@@ -119,7 +162,8 @@ export function buildReport(ledger: Ledger, scope: Scope, meta: { generatedAt: D
     const hours = s.started_at && s.ended_at ? Math.round(((new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()) / 36e5) * 10) / 10 : null;
     const cost_live = typeof s.cost_live_usd === "number" ? s.cost_live_usd : null;
     const mark: Mark = cost_live !== null ? "measured" : s.cost_mark === "assumed" || runs.some((r) => r.cost_mark === "assumed") ? "assumed" : "estimated";
-    return { id: s.id, source_file: s.source_file, date: (s.started_at ?? "").slice(0, 10), title: s.title, hours, cost_live, cost_main: s.cost_usd, cost_agents: runs.reduce((a, r) => a + r.cost_usd, 0), commits: (commitsBySession.get(s.id) ?? 0) + (scope.generous ? generousBySession.get(s.id) ?? 0 : 0), written, alive, tracked, runs, peak: peakOf(runs), depth: runs.reduce((m, r) => Math.max(m, r.depth), 0), died: runs.filter((r) => r.fate === "died").length, mark };
+    const title = sessionTitle(s.id, s.title, firstCommitBySession.get(s.id)?.subject ?? null, written, scope.repoPath);
+    return { id: s.id, source_file: s.source_file, date: (s.started_at ?? "").slice(0, 10), title, hours, cost_live, cost_main: s.cost_usd, cost_agents: runs.reduce((a, r) => a + r.cost_usd, 0), commits: (commitsBySession.get(s.id) ?? 0) + (scope.generous ? generousBySession.get(s.id) ?? 0 : 0), written, alive, tracked, runs, peak: peakOf(runs), depth: runs.reduce((m, r) => Math.max(m, r.depth), 0), died: runs.filter((r) => r.fate === "died").length, mark };
   });
 
   const costOfSession = (s: SessionAgg): number => s.cost_live ?? s.cost_main + s.cost_agents;

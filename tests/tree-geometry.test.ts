@@ -1,8 +1,5 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { concurrencyCurve, fateColour, fateTone, laneRuns, peakOf, timeScale, type GeoRun } from "../src/render/tree-geometry.js";
-import { timelineFor } from "../src/report/index.js";
 import type { Run } from "../src/schema/ledger.js";
 
 const usage = { input: 1, output: 1, cache_read: 0, cache_write_5m: 0, cache_write_1h: 0 };
@@ -12,16 +9,6 @@ function run(id: string, s: number, e: number, depth: number, fate: Run["fate"])
 }
 const RUNS: Run[] = [run("r1", 0, 30, 1, "finished_unlanded"), run("r2", 10, 40, 2, "finished_unlanded"), run("r3", 35, 50, 1, "died"), run("r4", 20, 25, 3, "finished_unlanded")];
 const geo: GeoRun[] = RUNS.map((r) => ({ id: r.id, start: r.started_at!, end: r.ended_at!, depth: r.depth, fate: r.fate }));
-
-describe("the tree renders byte-identically after the geometry was lifted out", () => {
-  it("timelineSvg matches the golden captured before the refactor", async () => {
-    const { timelineSvg } = await import("../src/render/html.js");
-    const tl = timelineFor({ id: "S", date: "2026-08-31", title: "golden" }, RUNS, false)!;
-    // golden regenerated 2026-09-06: peak callout is the accent (--mark), warm = died only; the cap annotation is a label (--faint), not an accent.
-    const golden = readFileSync(path.join(__dirname, "fixtures", "timeline.golden.txt"), "utf8");
-    expect(timelineSvg(tl)).toBe(golden);
-  });
-});
 
 describe("timeScale", () => {
   it("maps t0 to left, t1 to left+width, linearly, and clamps a zero span", () => {

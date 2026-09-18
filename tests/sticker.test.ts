@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { CLIENT_JS, xIntentUrl } from "../src/render/app.js";
+import { xIntentUrl } from "../src/render/app.js";
+import { WB_APP_JS } from "../src/render/workbench-client.js";
 import { stickerData } from "../src/render/sticker.js";
 import { ReportSchema } from "../src/schema/socket.js";
 
@@ -30,15 +31,14 @@ describe("the sticker carries aggregates only", () => {
   });
 
   it("the browser draw code reads A.sticker and nothing else from the page data", () => {
-    const start = CLIENT_JS.indexOf("// sticker:"); const end = CLIENT_JS.indexOf("// share as a page:"); // the upload code sits after the draw code and is allowed to call the app
+    const start = WB_APP_JS.indexOf("// the card:"); const end = WB_APP_JS.indexOf("// the live view:");
     expect(start).toBeGreaterThan(0); expect(end).toBeGreaterThan(start);
-    const block = CLIENT_JS.slice(start, end);
+    const block = WB_APP_JS.slice(start, end);
     expect(block).toMatch(/A\.sticker/);
     expect(block.match(/\bA\.(?!sticker\b)\w+/g)).toBeNull();
     for (const forbidden of ["sessions", "title", "repo_path", "fixes", "rereads", "fetch(", "api("]) expect(block).not.toContain(forbidden);
     expect(block).toContain("toBlob");
     expect(block).toContain("ClipboardItem");
-    expect(block).toContain("navigator.share");
   });
 
   it("the X intent carries the text card only, and no title or path", () => {

@@ -1,6 +1,6 @@
 {
   "name": "actuals",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "See what your coding agents actually shipped. Reads your Claude Code sessions and git, locally, and reports what was kept, what died, and what it cost.",
   "type": "module",
   "keywords": [

@@ -3,6 +3,23 @@
 Newest first. Each entry is what a user gets, in plain terms. Dates are the ship date once
 published; an unreleased entry is marked DRAFT and may still change.
 
+## 0.3.0 (2026-09-19)
+
+**The report is now a workbench.** One screen: your sessions on the left, newest first, and
+the answer on the right. The overview opens on a sentence, how many files your agents wrote
+in this window and how many are still on disk, then the receipt: spend at list rates,
+commits, cost per commit, and the runs that left nothing. Spend by day, kept work per dollar
+by model, and what the agent runs left behind sit under it. Pick a session and it opens on
+its verdict, your label control, the agents drawn to time, and every run with what it left
+behind: in git, on disk, nothing left, unknown, or died. Keys: j and k move, l labels, f
+fixes, s share, v live, esc back.
+
+**Less to read, nothing hidden.** Method and privacy live behind one badge in the top bar
+that says what left your machine. Every number keeps its provenance mark.
+
+**Retired.** The date range and the session tick-list; the report is filtered by title and
+scoped by repository instead.
+
 ## 0.2.0 (2026-09-17)
 
 **Share your numbers, if you want to.** Actuals still reads your sessions and git on your own

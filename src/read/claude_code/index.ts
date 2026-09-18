@@ -44,8 +44,16 @@ interface Parsed {
   versions: Set<string>;
   gitBranch: string | null;
   entrypoint: string | null;
+  /** what this session was asked to do: the user's own words, else the brief another session sent */
   firstPrompt: string;
+  /** the first prompt the user typed */
+  ownPrompt: string;
+  /** the first instruction another session sent in, used only when the user typed nothing */
+  briefPrompt: string;
   aiTitle: string | null;
+  customTitle: string | null;
+  /** user messages already tried as the first prompt; the search stops at MAX_PROMPT_TRIES */
+  promptTries: number;
   start: string | null;
   end: string | null;
   turns: Array<{ ts: string; model: string; usage: Usage }>;
@@ -67,6 +75,55 @@ function real(p: string): string { try { return realpathSync(p); } catch { retur
 /** Claude Code names a project directory after the path with separators replaced by "-". */
 export function slugFor(p: string): string { return p.replace(/[\\/:.]/g, "-"); } // fixtures pinned per major.minor under eval/fixtures/claude_code/
 
+/**
+ * Wrappers Claude Code puts around, or instead of, what the user typed. Everything between
+ * the tags is machinery, not a prompt, so the whole block goes. task-notification is not in
+ * the list the reader was given; it was measured on the local transcripts, where it is the
+ * first user line of two sessions and strips to tool ids and a job id, never a prompt.
+ */
+const WRAPPER_BLOCKS = ["system-reminder", "command-name", "command-message", "command-args", "local-command-stdout", "local-command-caveat", "ide_selection", "ide_opened_file", "task-notification"];
+/** How many user messages the first-prompt search will try before giving up. */
+const MAX_PROMPT_TRIES = 5;
+
+/**
+ * The user's own words inside one user message, with the wrappers removed. A cross-session
+ * message keeps its body (that text IS the instruction the session was given) and loses the
+ * tag, which carries the sending session's name and its socket path. Empty means this
+ * message said nothing a person would recognise as a prompt.
+ */
+export function promptFromUserText(raw: string): string {
+  let t = raw;
+  for (const w of WRAPPER_BLOCKS) {
+    t = t.replace(new RegExp(`<${w}\\b[^>]*>[\\s\\S]*?</${w}>`, "gi"), " ");
+    t = t.replace(new RegExp(`<${w}\\b[^>]*>[\\s\\S]*$`, "gi"), " "); // a block the transcript cut off mid-way
+  }
+  t = t.replace(/Another Claude session sent a message:/gi, " ");
+  t = t.replace(/<cross-session-message\b[^>]*>/gi, " ");
+  t = t.replace(/<\/cross-session-message>[\s\S]*$/i, " ");
+  t = t.replace(/\[Image:[^\]]*\]/g, " ");
+  t = t.replace(/<[^>]*>/g, " ");
+  return t.replace(/\s+/g, " ").trim();
+}
+
+/**
+ * A session title from the first prompt: the opening sentence, or the first 80 characters on
+ * a word boundary, whichever comes first. A sentence end in the first few words (a "HANDOVER:"
+ * or a "Task:" opener) is skipped, so the title carries the work and not the label.
+ */
+export function titleFromPrompt(prompt: string): string {
+  const MIN_SENTENCE = 24, MAX = 80;
+  let cut = -1;
+  for (const m of prompt.matchAll(/[.?!:;](?=\s)|\n/g)) {
+    const at = (m.index ?? 0) + 1;
+    if (at >= MIN_SENTENCE) { cut = at; break; }
+  }
+  if (cut > 0 && cut <= MAX) return prompt.slice(0, cut).replace(/[\s,;:]+$/, "").trim();
+  if (prompt.length <= MAX) return prompt.trim();
+  const head = prompt.slice(0, MAX);
+  const space = head.lastIndexOf(" ");
+  return (space > 0 ? head.slice(0, space) : head).replace(/[\s,;:.]+$/, "").trim();
+}
+
 function usageOf(u: Record<string, unknown>): Usage {
   const cc = rec(u["cache_creation"]);
   const creation = num(u["cache_creation_input_tokens"]);
@@ -85,7 +142,7 @@ function usageOf(u: Record<string, unknown>): Usage {
 
 async function parseFile(file: string, ownerKind: "session" | "run", ownerId: string): Promise<Parsed> {
   const p: Parsed = {
-    ownerId, ownerKind, file, cwds: new Set(), versions: new Set(), gitBranch: null, entrypoint: null, firstPrompt: "", aiTitle: null,
+    ownerId, ownerKind, file, cwds: new Set(), versions: new Set(), gitBranch: null, entrypoint: null, firstPrompt: "", ownPrompt: "", briefPrompt: "", aiTitle: null, customTitle: null, promptTries: 0,
     start: null, end: null, turns: [], toolUses: [], results: new Set(), lastAssistantToolUseId: null, lastAssistantWasToolUse: false,
     lastText: "", bad: 0, bytes: 0, agentId: null,
   };
@@ -106,6 +163,8 @@ async function parseFile(file: string, ownerKind: "session" | "run", ownerId: st
     const ep = str(o["entrypoint"]); if (ep && !p.entrypoint) p.entrypoint = ep;
     const aid = str(o["agentId"]); if (aid) p.agentId = aid;
     if (type === "ai-title") { p.aiTitle = str(o["aiTitle"]); continue; }
+    // the name the user gave this session by hand; the last one wins, as with ai-title
+    if (type === "custom-title") { p.customTitle = str(o["customTitle"]); continue; }
     const message = rec(o["message"]);
     if (type === "assistant" && message) {
       const usage = rec(message["usage"]);
@@ -133,24 +192,37 @@ async function parseFile(file: string, ownerKind: "session" | "run", ownerId: st
     }
     if (type === "user" && message) {
       const content = message["content"];
+      let text = "";
+      let answering = false; // a message that carries a tool result is a tool answering, never the prompt
       if (typeof content === "string") {
-        if (!p.firstPrompt && o["isMeta"] !== true && o["isSidechain"] !== true && !content.startsWith("<")) {
-          p.firstPrompt = content.replace(/\s+/g, " ").trim().slice(0, 160);
-        }
+        text = content;
       } else {
         for (const b of arr(content)) {
           const blk = rec(b); if (!blk) continue;
           if (str(blk["type"]) === "tool_result") {
+            answering = true;
             const id = str(blk["tool_use_id"]); if (id) p.results.add(id);
             if (p.lastAssistantToolUseId === id) p.lastAssistantWasToolUse = false;
-          } else if (str(blk["type"]) === "text" && !p.firstPrompt && o["isMeta"] !== true && o["isSidechain"] !== true) {
-            const t = str(blk["text"]) ?? "";
-            if (t.trim() && !t.startsWith("<")) p.firstPrompt = t.replace(/\s+/g, " ").trim().slice(0, 160);
+          } else if (str(blk["type"]) === "text") {
+            text += (text ? "\n" : "") + (str(blk["text"]) ?? "");
           }
         }
       }
+      // the first prompt: what the person asked for, and failing that the brief another
+      // session sent in. A sidechain is never the prompt. A message Claude Code marked as its
+      // own (isMeta) counts only when it carries a cross-session message, because that body
+      // is the instruction this session was started on, and it never beats the user's own
+      // words. Wrappers are stripped first; a message that is nothing but wrappers is skipped
+      // and the next one is tried.
+      const cross = /<cross-session-message\b/i.test(text);
+      if (!p.ownPrompt && text.trim() && !answering && o["isSidechain"] !== true && p.promptTries < MAX_PROMPT_TRIES && (o["isMeta"] !== true || cross)) {
+        p.promptTries += 1;
+        const cleaned = promptFromUserText(text).slice(0, 160);
+        if (cleaned) { if (o["isMeta"] === true) { if (!p.briefPrompt) p.briefPrompt = cleaned; } else p.ownPrompt = cleaned; }
+      }
     }
   }
+  p.firstPrompt = p.ownPrompt || p.briefPrompt;
   return p;
 }
 
@@ -289,7 +361,9 @@ export async function read(scope: Scope, runId: string, repoId: string, claudeRo
     };
 
     const m = emit(main, "session", sf.sessionId);
-    const title = main.aiTitle ?? (main.firstPrompt || `session ${sf.sessionId.slice(0, 8)}`);
+    // what this session was: Claude Code's own title, else the name the user gave it, else
+    // the opening line of the first prompt, else the id (the report then tries the work).
+    const title = main.aiTitle?.trim() || main.customTitle?.trim() || (main.firstPrompt ? titleFromPrompt(main.firstPrompt) : "") || `session ${sf.sessionId.slice(0, 8)}`;
     out.sessions.push({
       run_id: runId, id: sf.sessionId, tool: "claude_code", project_path: sf.cwd ?? [...main.cwds][0] ?? "", repo_id: repoId, source_file: sf.file,
       started_at: main.start, ended_at: main.end, tool_version: [...main.versions].sort().at(-1) ?? null, entrypoint: main.entrypoint,

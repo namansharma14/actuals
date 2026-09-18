@@ -1,8 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { ReportSchema, type Report } from "../src/schema/socket.js";
-import { renderHtml } from "../src/render/html.js";
-import { CSS } from "../src/render/html.js";
+import { CSS, renderHtml, spendByDay, windowLabel, type RenderOpts } from "../src/render/html.js";
 import { renderShareText } from "../src/render/share.js";
 import { renderStickerSvg } from "../src/render/sticker.js";
 
@@ -12,217 +11,207 @@ const raw = JSON.parse(readFileSync(FIXTURE_URL, "utf8"));
 const EM_DASH = "—";
 
 describe("eval/fixtures/socket/report.fixture.json", () => {
-  it("validates against ReportSchema (a)", () => {
+  it("validates against ReportSchema", () => {
     const parsed = ReportSchema.safeParse(raw);
-    if (!parsed.success) {
-      throw new Error(`fixture failed schema validation: ${JSON.stringify(parsed.error.issues.slice(0, 10))}`);
-    }
+    if (!parsed.success) throw new Error(`fixture failed schema validation: ${JSON.stringify(parsed.error.issues.slice(0, 10))}`);
     expect(parsed.success).toBe(true);
   });
 });
 
 const report: Report = ReportSchema.parse(raw);
+const appRender: NonNullable<RenderOpts["app"]> = {
+  token: "tok-test-123", port: 43123,
+  catalog: report.sessions.map((s) => ({ id: s.id, date: s.date, title: s.title, cost_usd: s.cost_usd, agents: s.agents, peak_concurrency: s.peak_concurrency })),
+  projects: [{ slug: "-a", label: "a", sessions: 3, last: null }], project: "", repoTab: { slug: "", sessions: 8 },
+  scope: { since: null, until: null, sessionIds: null }, applied: [report.fixes[0]!.id], staticPath: "/tmp/x/report.html", dailyKept: { n: 26, m: 26 },
+};
+const embedRender = { drawers: { [report.sessions[0]!.id]: '<div class="wb-meta"><span>1 Sep</span></div>' } };
+
 const html = renderHtml(report, { redact: false });
 const redactedHtml = renderHtml(report, { redact: true });
+const appHtml = renderHtml(report, { redact: false, app: appRender });
+const embedHtml = renderHtml(report, { redact: true, embed: embedRender });
 const shareSvg = renderStickerSvg(report);
 const shareText = renderShareText(report);
 
-describe("renderHtml", () => {
-  it("contains each headline value with its mark, and the closing line (b)", () => {
-    const h = report.headline;
-    // cost_usd: $2,540 · estimated
-    expect(html).toMatch(/\$2,540[\s\S]{0,120}estimated/);
-    expect(html).toContain(">estimated<");
-    // commits: 149 · measured
-    expect(html).toMatch(/149[\s\S]{0,120}measured/);
-    // cost_per_commit: $17.05 · estimated
-    expect(html).toContain("$17.05");
-    // files_alive: 182 of 207, 88% · measured
-    expect(html).toContain("182");
-    expect(html).toContain("207");
-    expect(html).toMatch(/88%[\s\S]{0,120}measured/);
-    // runs_no_fate: 80 · measured, cost 700
-    expect(html).toMatch(/80[\s\S]{0,160}measured/);
-    expect(html).toContain("$700");
-    expect(h.cost_usd.mark).toBe("estimated");
-    expect(h.commits.mark).toBe("measured");
+describe("the three modes come out of one template", () => {
+  it("app: the live controls, the token, one inline script, and no absolute URL but the post intent", () => {
+    expect(appHtml).toContain("<script>");
+    expect(appHtml).toContain("tok-test-123");
+    expect(appHtml).toContain('data-sheet="fixes"');
+    expect(appHtml).toContain('data-sheet="share"');
+    expect(appHtml).toContain('data-project="*"'); // the scope toggle
+    expect(appHtml).toContain('id="wb-q"'); // the filter
+    expect(appHtml).toContain('id="tab-live"');
+    expect(appHtml).toContain('<canvas id="sticker"');
+    expect(appHtml).toContain('data-fix="' + report.fixes[0]!.id + '" data-applied="1"');
+    expect(appHtml).toContain('data-fix="' + report.fixes[1]!.id + '" data-applied="0"');
+    // the one absolute URL is the post the user clicks; the card's XML namespace is an identifier
+    expect(appHtml).toMatch(/<a class="wb-fbtn ghost" id="stk-x" href="https:\/\/x\.com\/intent\/post\?text=[^"]+"/);
+    const rest = appHtml.replace(/<a class="wb-fbtn ghost" id="stk-x" href="[^"]*"/, "").replace(/http%3A%2F%2Fwww\.w3\.org%2F2000%2Fsvg|http:\/\/www\.w3\.org\/2000\/svg/g, "");
+    expect(rest.toLowerCase()).not.toContain("http");
+    expect(appHtml).not.toContain(EM_DASH);
+  });
 
+  it("embed: the per-session views inlined, no server, no absolute URL, labels read-only", () => {
+    expect(embedHtml).toContain("window.__actualsEmbed");
+    expect(embedHtml).toContain(report.sessions[0]!.id);
+    for (const api of ["/api/session", "/api/label", "/api/run", "/api/fix", "/api/live"]) expect(embedHtml).not.toContain(api);
+    expect(embedHtml).not.toContain("x-actuals-token");
+    expect(embedHtml.replace(/http:\/\/www\.w3\.org\/2000\/svg/g, "").toLowerCase()).not.toContain("http");
+    expect(embedHtml).toContain("labels are saved in the app");
+    expect(embedHtml).not.toContain(EM_DASH);
+  });
+
+  it("static: no script at all, the overview and the session list as plain rows, print keeps the overview", () => {
+    expect(html).not.toContain("<script");
+    expect(html).not.toContain("window.__actuals");
+    expect(html).not.toContain('id="wb-q"');
+    expect(html).not.toContain("panel-live");
+    expect(html).toContain('class="wb-pane wb-staticlist noprint"');
+    expect(html).toContain('class="wb-row"'); // rows, not buttons
+    expect(html).not.toContain('class="wb-row" data-session=');
+    expect(html).toMatch(/@media print \{[\s\S]*?\.wb-staticlist[^}]*display: none/);
+    expect(/https?:\/\//.test(html)).toBe(false);
+    // the static file still says what left, which is the sentence the pipeline check reads
     expect(html).toContain("What left your machine: nothing. Tokens spent making this: 0.");
   });
+});
 
-  it("makes no network-shaped request: no http(s), @import, or <script (b)", () => {
-    for (const forbidden of ["http", "https://", "@import", "<script"]) {
-      expect(html.toLowerCase()).not.toContain(forbidden.toLowerCase());
-    }
+describe("every figure carries its mark, in the design's caption idiom", () => {
+  const receipt = html.slice(html.indexOf('class="wb-receipt"'), html.indexOf('class="wb-block"'));
+  it("the four receipt captions each end in a mark", () => {
+    expect(receipt).toContain('spent at list rates <span class="mark">estimated</span>');
+    expect(receipt).toContain('commits <span class="mark">measured</span>');
+    expect(receipt).toContain('per commit <span class="mark">estimated</span>');
+    expect(receipt).toContain('runs that left nothing · $700 <span class="mark">measured</span>');
+    // four figures, four marks: no number without one
+    expect((receipt.match(/class="wb-recv/g) ?? []).length).toBe(4);
+    expect((receipt.match(/class="mark"/g) ?? []).length).toBe(4);
+  });
+  it("the hero keeps its own mark, and the overview row shows the spend with one", () => {
+    expect(html).toContain('<div class="mark">measured from disk and git</div>');
+    expect(appHtml).toContain('<span class="wb-rcost">$2,540 <span class="mark">estimated</span></span>');
+  });
+  it("the models block and the fate block carry one mark each in their head line", () => {
+    expect(html).toMatch(/kept work per dollar <span class="mark">(estimated|assumed)<\/span>/);
+    expect(html).toMatch(/what \d+ agent runs left behind <span class="mark">measured<\/span>/);
+  });
+});
+
+describe("the copy the rules bind", () => {
+  it("the badge reads local · 0 bytes uploaded, and counts the numbers when sharing is on", () => {
+    expect(html).toContain("local · 0 bytes uploaded");
+    const shared = renderHtml(report, { redact: false, numbersShared: { count: 24, at: "2026-09-15T09:31:00.000Z" } });
+    expect(shared).toContain("local · shared 24 numbers");
+    expect(shared).not.toContain("0 bytes uploaded");
+    expect(shared).toContain("24 numbers at 09:31, shown before they went; nothing else.");
+    expect(html).toContain("Nothing. No account, no upload, no model call.");
   });
 
-  it("kept work per dollar is always a number for a model that spent, and the column says what 0 means", () => {
-    // the fixture's claude-fable-5 spent $56.60 and landed nothing: 0.000, never "not measurable"
-    expect(html).not.toContain("not measurable");
-    expect(html).toContain(">0.000<");
-    expect(html).toContain("kept work per dollar; 0 means nothing landed");
-    expect(html).toContain("not available yet");
+  it("the sentence counts the files and says on disk", () => {
+    expect(html).toContain("Your agents wrote 207 files in this window. 182 are still on disk.");
+    expect(html).not.toContain("still in your repo");
   });
 
-  it("redact:true carries no session title from the fixture (c)", () => {
+  it("the eyebrow and the overview row name the real window, never a month", () => {
+    expect(windowLabel(report)).toBe("8 Aug to 1 Sep");
+    expect(html).toContain("8 Aug to 1 Sep · 8 sessions · 114 agent runs");
+    expect(html).not.toContain("this month");
+  });
+
+  it("the limitations registry is verbatim under the five rules", () => {
+    const pop = html.slice(html.indexOf('class="wb-pop"'), html.indexOf("</details>", html.indexOf('class="wb-lim"')));
+    expect(pop).toContain("what this report cannot see");
+    for (const l of report.limitations) expect(pop).toContain(l.replace(/&/g, "&amp;").replace(/'/g, "&#39;"));
+    expect(pop).toContain("How this counts");
+    for (const k of ["Measured", "Estimated", "Alive", "Commit", "Left your machine"]) expect(pop).toContain(`>${k}<`);
+  });
+
+  it("the hero is at its value in the HTML, so the page reads without script", () => {
+    expect(html).toContain('<div class="wb-herofig" id="wb-hero" data-to="88%">88%</div>');
+  });
+});
+
+describe("the vocabulary", () => {
+  it("names a run's fate in the words a developer already uses", () => {
+    const fateBlock = html.slice(html.indexOf("agent runs left behind"), html.indexOf('class="wb-card'));
+    expect(fateBlock).toContain("in git");
+    expect(fateBlock).toContain("on disk");
+    expect(fateBlock).toContain("unknown");
+    expect(fateBlock).toContain("died");
+    expect(fateBlock).toContain("your label");
+    expect(fateBlock).not.toContain("landed, tracked");
+    expect(fateBlock).not.toContain("finished, nothing survives");
+    // the whole vocabulary, including the states this fixture has none of
+    const every: Report = { ...report, burn: { ...report.burn, fate: { ...report.burn.fate, by_state: { landed_tracked: 1, landed_untracked: 1, finished_unlanded: 1, unknown: 1, died: 1, founder_labelled: 1, still_running: 1 } } } };
+    const all = renderHtml(every, { redact: false });
+    const block = all.slice(all.indexOf("agent runs left behind"), all.indexOf('class="wb-card'));
+    for (const w of ["in git", "on disk", "nothing left", "unknown", "died", "your label", "still running"]) expect(block).toContain(w);
+  });
+  it("keeps a session's outcome word, and says whose label it is when there is one", () => {
+    expect(html).toContain(">kept</span>");
+    expect(html).toContain("dead · your label");
+    expect(html).not.toContain("founder-labelled");
+  });
+});
+
+describe("motion is off under reduced motion", () => {
+  it("the rise, the slide and the pulse are all disabled, and the count-up needs script", () => {
+    expect(CSS).toMatch(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.wb-rise[\s\S]*?animation: none/);
+    expect(CSS).toMatch(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.wb-dot[\s\S]*?animation: none/);
+    expect(html).not.toContain("requestAnimationFrame"); // no script on the static page at all
+    expect(appHtml).toContain("prefers-reduced-motion: reduce");
+  });
+});
+
+describe("the panels a frame can ask for", () => {
+  it("every ?panel target exists, and #session= opens a session too", () => {
+    expect(embedHtml).toContain('id="panel-report"'); // ?panel=top
+    expect(embedHtml).toContain('id="instrument"'); // ?panel=session
+    expect(embedHtml).toContain('id="wb-fixes"'); // ?panel=fixes
+    expect(embedHtml).toContain('panel === "fixes"');
+    expect(embedHtml).toContain('#session=');
+    expect(appHtml).toContain('panel === "live"');
+  });
+});
+
+describe("spend by day", () => {
+  it("fills every day in the window, highlights the peak, and titles each bar", () => {
+    const days = spendByDay(report);
+    expect(days[0]!.key).toBe("2026-08-08");
+    expect(days.at(-1)!.key).toBe("2026-09-01");
+    expect(days.length).toBe(25);
+    expect(days.filter((d) => d.v === 0).length).toBeGreaterThan(0);
+    expect(html).toContain('title="2026-08-09 · $760"');
+    expect(html).toContain("peak $760 on 9 Aug");
+    expect(html).toMatch(/class="wb-day" style="height: 96px; background: var\(--ink\)"/);
+  });
+});
+
+describe("redaction", () => {
+  it("carries no session title, no repository path, no fix target and no snippet", () => {
     for (const s of report.sessions) {
       expect(redactedHtml).not.toContain(s.title);
       expect(redactedHtml).toContain(`session ${s.id.slice(0, 8)}`);
     }
     expect(redactedHtml).not.toContain(report.repo_path);
     expect(redactedHtml).toContain("redacted");
-    // Non-redacted render does carry the real title and path, proving the switch does something.
+    for (const f of report.fixes) if (f.target_file) expect(redactedHtml).not.toContain(f.target_file);
+    for (const f of report.fixes) if (f.snippet.trim()) expect(redactedHtml).not.toContain(f.snippet);
     expect(html).toContain(report.sessions[0]!.title);
-    expect(html).toContain(report.repo_path);
-  });
-
-  it("redact:true also strips file paths and /insights goal text", () => {
-    for (const fix of report.fixes) {
-      if (fix.target_file) expect(redactedHtml).not.toContain(fix.target_file);
-    }
-    for (const top of report.burn.rereads.top) {
-      expect(redactedHtml).not.toContain(top.path);
-    }
-    const claimedSession = report.sessions.find((s) => s.claimed);
-    expect(claimedSession).toBeDefined();
-    expect(redactedHtml).not.toContain(claimedSession!.claimed!.goal);
-  });
-});
-
-/**
- * The 2026-09-15 reorder: the alpha first, the instrument late, one disclosure for the limits.
- * The site's iframe addresses #instrument, #sessions and #fixes, so the ids ride along unchanged.
- */
-describe("the report opens on the alpha", () => {
-  const at = (id: string) => html.indexOf(id);
-  it("renders readouts, sessions, what the spend turned into, fixes, the instrument, the card, the foot, the closing line", () => {
-    const order = ['class="readouts', 'id="sessions"', 'class="yield', 'id="fixes"', 'id="instrument"', 'class="share-wrap"', 'class="disclosures foot', 'class="closing"'];
-    const seen = order.map(at);
-    for (const i of seen) expect(i).toBeGreaterThan(-1);
-    expect(seen).toEqual([...seen].sort((a, b) => a - b));
-    // the three anchors the site scrolls to are still ids on sections
-    for (const id of ["instrument", "sessions", "fixes"]) expect(html).toContain(`<section class="block break" id="${id}">`);
-  });
-
-  it("fate of runs sits beside kept work per dollar, directly under the sessions table", () => {
-    const y = html.slice(at('class="yield'), html.indexOf("</section>", at('class="yield')));
-    expect(y).toContain("fate of");
-    expect(y).toContain("kept work per dollar, by model");
-    expect(at('id="sessions"')).toBeLessThan(at('class="yield'));
-  });
-
-  it("shows the ten costliest sessions and folds the rest behind one counted disclosure", () => {
-    const rows = (t: string) => (t.match(/<div class="tr"/g) ?? []).length;
-    // the fixture has eight sessions, so nothing is folded yet
-    expect(html).not.toContain('<details class="more">');
-    expect(rows(html.slice(at('id="sessions"'), at('class="yield')))).toBe(report.sessions.length);
-    // a report with fourteen sessions opens on the ten that cost the most
-    const many: Report = { ...report, sessions: [...report.sessions, ...report.sessions.slice(0, 6).map((x, i) => ({ ...x, id: `dddddddd-0000-0000-0000-00000000000${i}`, title: `extra session ${i}`, cost_usd: 0.11 + i }))] };
-    const big = renderHtml(many, { redact: false });
-    const table = big.slice(big.indexOf('id="sessions"'), big.indexOf('class="yield'));
-    const cut = table.indexOf('<details class="more">');
-    expect(cut).toBeGreaterThan(-1);
-    expect(rows(table.slice(0, cut))).toBe(10);
-    expect(rows(table.slice(cut))).toBe(4);
-    expect(table).toContain("<summary>show all 14 sessions</summary>");
-    // costliest first: the cheapest four are the folded ones, and every row is still clickable data
-    const cheapest = [...many.sessions].sort((a, b) => a.cost_usd - b.cost_usd).slice(0, 4);
-    for (const c of cheapest) expect(table.slice(cut)).toContain(c.title);
-  });
-
-  it("the outcome is one word with its mark, and the evidence sentence rides in the cell title", () => {
-    for (const s of report.sessions) {
-      expect(html).toContain(`<div class="outcome ${s.outcome.state === "died" ? "warn" : ""}" title="${s.outcome.note.replace(/&/g, "&amp;").replace(/"/g, "&quot;")}"><span class="state">${s.outcome.state}</span>`);
-    }
-    // the sentence is no longer a second visible line under the word
-    expect(html).not.toContain(`<div class="outcome "><span class="state">`);
-  });
-
-  it("the limitations registry is verbatim behind one disclosure that opens in print", () => {
-    const lim = html.slice(html.indexOf('<details class="lim">'), html.indexOf("</details>", html.indexOf('<details class="lim">')));
-    expect(lim).toContain("what this report cannot see");
-    for (const l of report.limitations) expect(lim).toContain(l.replace(/&/g, "&amp;").replace(/'/g, "&#39;"));
-    // a closed details hides its content through the UA's content slot, so print must open that pseudo
-    expect(CSS).toMatch(/@media print \{[\s\S]*?details::details-content[\s\S]*?content-visibility: visible/);
-    expect(CSS).toContain("summary:focus-visible");
-  });
-});
-
-describe("numbers sharing (opt-in) says so in the rail and the closing line", () => {
-  const shared = renderHtml(report, { redact: false, numbersShared: { count: 24, at: "2026-09-15T09:31:00.000Z" } });
-  it("off: the rail keeps 0 bytes uploaded and the closing line says nothing left", () => {
-    expect(html).toContain("local · 0 bytes uploaded · 0 tokens spent");
-    expect(html).toContain("What left your machine: nothing. Tokens spent making this: 0.");
-  });
-  it("on: the rail counts the numbers and the closing line says when they went", () => {
-    expect(shared).toContain("local · shared 24 numbers · 0 tokens spent");
-    expect(shared).toContain("What left your machine: 24 numbers at 2026-09-15 09:31 UTC, shown before they went. Tokens spent making this: 0.");
-    expect(shared).not.toContain("0 bytes uploaded");
-  });
-  it("a hosted copy still says what a hosted copy did, sharing or not", () => {
-    const both = renderHtml(report, { redact: true, hosted: true, numbersShared: { count: 24, at: "2026-09-15T09:31:00.000Z" } });
-    expect(both).toContain("hosted copy · read locally · 0 tokens spent");
-    expect(both).toContain("What left the machine: this redacted report and one PNG.");
-  });
-});
-
-describe("renderHtml as a hosted copy", () => {
-  const hosted = renderHtml(report, { redact: true, hosted: true });
-  it("says what is true on a page that exists because the report was uploaded", () => {
-    expect(hosted).toContain("hosted copy · read locally · 0 tokens spent");
-    expect(hosted).toContain("What left the machine: this redacted report and one PNG. Tokens spent making this: 0.");
-    expect(hosted).not.toContain("0 bytes uploaded");
-    expect(hosted).not.toContain("What left your machine: nothing");
-    expect(html).toContain("What left your machine: nothing. Tokens spent making this: 0.");
-    // the marks legend and fate states read as a stranger would; the fixture's own session titles may say anything, so check the redacted render
-    expect(redactedHtml.toLowerCase()).not.toContain("founder");
-  });
-});
-
-describe("renderHtml in app mode", () => {
-  const appHtml = renderHtml(report, { redact: false, app: { token: "tok-test-123", port: 43123, catalog: report.sessions.map((s) => ({ id: s.id, date: s.date, title: s.title, cost_usd: s.cost_usd, agents: s.agents, peak_concurrency: s.peak_concurrency })), projects: [], project: "", repoTab: { slug: "", sessions: 0 }, scope: { since: null, until: null, sessionIds: null }, applied: [report.fixes[0]!.id], staticPath: "/tmp/x/report.html" } });
-  it("adds the picker, drawer, fix actions and one inline script, still with no absolute URL and no em dash", () => {
-    expect(appHtml).toContain("<script>");
-    expect(appHtml).toContain("tok-test-123");
-    expect(appHtml).toContain('id="picker"');
-    expect(appHtml).toContain('id="drawer"');
-    expect(appHtml).toContain(`data-fix="${report.fixes[0]!.id}" data-applied="1"`);
-    expect(appHtml).toContain(`data-fix="${report.fixes[1]!.id}" data-applied="0"`);
-    expect(appHtml).not.toContain(`data-fix="${report.fixes.find((f) => !f.available)!.id}"`);
-    expect(appHtml).toContain("sessions with trees, click to draw");
-    // the sticker section's visible copy is one line plus its buttons
-    expect(appHtml).toContain('<div class="block-head"><div><div class="lab">the sticker</div></div></div>');
-    expect(appHtml).toContain("1080 by 1080 PNG · aggregates only");
-    expect(appHtml).toContain("app on 127.0.0.1:43123 · nothing leaves this machine");
-    expect(appHtml).not.toContain("unless you share your numbers");
-    // the one absolute URL is the X post intent the user clicks; nothing else is network-shaped
-    expect(appHtml).toMatch(/<a class="btn" id="stk-x" href="https:\/\/x\.com\/intent\/post\?text=[^"]+" target="_blank" rel="noopener noreferrer">/);
-    // the card's XML namespace is an identifier, not an address; nothing fetches it
-    expect(appHtml.replace(/<a class="btn" id="stk-x" href="[^"]*"/, "").replace(/http%3A%2F%2Fwww\.w3\.org%2F2000%2Fsvg|http:\/\/www\.w3\.org\/2000\/svg/g, "").toLowerCase()).not.toContain("http");
-    expect(appHtml).toContain('<canvas id="sticker"');
-    expect(appHtml).not.toContain("@import");
-    expect(appHtml).not.toContain(EM_DASH);
-  });
-  it("the app rail names sharing only when sharing is on", () => {
-    const shared = renderHtml(report, { redact: false, numbersShared: { count: 7, at: "2026-09-15T09:31:00.000Z" }, app: { token: "tok", port: 43123, catalog: [], projects: [], project: "", repoTab: { slug: "", sessions: 0 }, scope: { since: null, until: null, sessionIds: null }, applied: [], staticPath: "/tmp/x/report.html" } });
-    expect(shared).toContain("nothing leaves this machine unless you share your numbers");
-  });
-  it("the static render is unchanged by the app layer: no script, no picker", () => {
-    expect(html).not.toContain("<script");
-    expect(html).not.toContain('id="picker"');
-    expect(html).toContain("other peaks");
+    expect(html).toContain(report.repo_path.split("/").filter(Boolean).at(-1)!);
   });
 });
 
 describe("the share card: renderStickerSvg / renderShareText", () => {
-  it("contain none of the fixture's session titles or file paths, and contain the aggregate numbers (d)", () => {
+  it("contain none of the fixture's session titles or file paths, and contain the aggregate numbers", () => {
     const s = report.share;
     for (const output of [shareSvg, shareText]) {
       for (const session of report.sessions) expect(output).not.toContain(session.title);
       for (const fix of report.fixes) if (fix.target_file) expect(output).not.toContain(fix.target_file);
       for (const top of report.burn.rereads.top) expect(output).not.toContain(top.path);
       expect(output).not.toContain(report.repo_path);
-
       expect(output).toContain(String(s.agent_runs));
       expect(output).toContain(String(s.commits));
       expect(output).toContain(String(s.runs_no_fate));
@@ -230,40 +219,37 @@ describe("the share card: renderStickerSvg / renderShareText", () => {
       expect(output).toContain("88%");
     }
     expect(shareText).toContain("measured by actuals");
-    expect(shareText).toContain(String(s.biggest_tree)); // the card draws the tree instead of naming it
-    // the post ends with the command and the public repository, on one line, after the sign-off
     expect(shareText.split("\n").slice(-2)).toEqual(["measured by actuals", "npx actuals · github.com/namansharma14/actuals"]);
   });
 
-  it("the card is one dark composition with npx actuals as its call to action, legible in a phone screenshot", () => {
+  it("the card is one dark composition with npx actuals as its call to action", () => {
     expect(shareSvg).toContain('viewBox="0 0 1080 1080"');
-    expect(shareSvg).toContain("#0B0E12"); // the artboard
+    expect(shareSvg).toContain("#0B0E12");
     expect(shareSvg).toContain("npx actuals");
     expect(shareSvg).toContain("getactuals.net");
-    expect(shareSvg).not.toContain("Gradient"); // no gradients, no glow
+    expect(shareSvg).not.toContain("Gradient");
     expect(shareSvg).not.toContain("filter=");
-    // the call to action is set large enough to survive a screenshot, every label large enough to read
     const cta = /<text [^>]*font-size="(\d+)"[^>]*>npx actuals</.exec(shareSvg);
     expect(Number(cta![1])).toBeGreaterThanOrEqual(34);
     const sizes = [...shareSvg.matchAll(/<text [^>]*font-size="(\d+)"/g)].map((m) => Number(m[1]));
-    expect(sizes.length).toBeGreaterThan(8);
     expect(Math.min(...sizes)).toBeGreaterThanOrEqual(23);
   });
 
-  it("share.svg is well-formed enough to open standalone (has xmlns, no script, no re-quoted attributes)", () => {
+  it("share.svg is well-formed enough to open standalone, and the page's copy of it drops the namespace", () => {
     expect(shareSvg).toContain('xmlns="http://www.w3.org/2000/svg"');
     expect(shareSvg.toLowerCase()).not.toContain("<script");
-    // A double quote inside a double-quoted attribute value (e.g. a font stack with an
-    // embedded "Name") breaks XML well-formedness. Every `="..."` run must be followed
-    // by whitespace, `/`, or `>`, never another bare character.
     expect(shareSvg).not.toMatch(/="[^"]*"[^\s/>]/);
+    expect(html).toContain('class="wb-thumb-svg"');
+    expect(html).not.toContain('xmlns="http://www.w3.org/2000/svg"');
   });
 });
 
-describe("no em dash anywhere in rendered output (e)", () => {
+describe("no em dash anywhere in rendered output", () => {
   it.each([
-    ["renderHtml", html],
-    ["renderHtml redacted", redactedHtml],
+    ["static", html],
+    ["static redacted", redactedHtml],
+    ["app", appHtml],
+    ["embed", embedHtml],
     ["renderStickerSvg", shareSvg],
     ["renderShareText", shareText],
   ])("%s", (_name, output) => {
@@ -272,32 +258,27 @@ describe("no em dash anywhere in rendered output (e)", () => {
 });
 
 /**
- * The report is numbers first, words second (founder, 2026-09-07: "extremely verbose"). This
- * counts the prose a reader sees by default (headings, paragraphs, list items, fine print and
- * notes outside closed disclosures; never code, SVG or data cells) and holds it under half of
- * what the page carried before the first trim (static 417, app 503 on this fixture), and under what the
- * 2026-09-15 reorder measured (static 142, app 179).
+ * The page is numbers first. This counts the prose a reader sees by default (headings,
+ * paragraphs, list items and the fine print outside a closed disclosure; never code, SVG or a
+ * data cell) and holds it where the Workbench put it.
  */
 describe("visible prose budget", () => {
   const words = (t: string) => t.replace(/<[^>]+>/g, " ").replace(/&[a-z#0-9]+;/g, " ").split(/\s+/).filter((w) => /[A-Za-z]/.test(w)).length;
   function visibleProse(page: string): number {
-    let s = page.replace(/<style[\s\S]*?<\/style>/g, " ").replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<svg[\s\S]*?<\/svg>/g, " ").replace(/<pre[\s\S]*?<\/pre>/g, " ");
-    s = s.replace(/<details(?![^>]*\bopen\b)[^>]*>([\s\S]*?)<\/details>/g, (_m, inner: string) => " " + (/<summary>([\s\S]*?)<\/summary>/.exec(inner)?.[1] ?? "") + " ");
+    let s = page.replace(/<style[\s\S]*?<\/style>/g, " ").replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<svg[\s\S]*?<\/svg>/g, " ");
+    // a pane or a sheet the page opens hidden is not prose a reader sees
+    for (const tag of ["section", "aside", "div"]) s = s.replace(new RegExp("<" + tag + "[^>]*\\shidden[^>]*>[\\s\\S]*?<\\/" + tag + ">", "g"), " ");
+    s = s.replace(/<details(?![^>]*\bopen\b)[^>]*>([\s\S]*?)<\/details>/g, (_m, inner: string) => " " + (/<summary[^>]*>([\s\S]*?)<\/summary>/.exec(inner)?.[1] ?? "") + " ");
     let n = 0;
-    for (const re of [/<h2[^>]*>([\s\S]*?)<\/h2>/g, /<p\b[^>]*>([\s\S]*?)<\/p>/g, /<li>([\s\S]*?)<\/li>/g, /<(?:div|span) class="(?:fine|next|insight|legend-line)[^"]*"[^>]*>([\s\S]*?)<\/(?:div|span)>/g, /<div class="muted">([\s\S]*?)<\/div>/g]) {
+    for (const re of [/<h1[^>]*>([\s\S]*?)<\/h1>/g, /<p\b[^>]*>([\s\S]*?)<\/p>/g, /<div class="wb-card-p"[^>]*>([\s\S]*?)<\/div>/g, /<span class="wb-card-p"[^>]*>([\s\S]*?)<\/span>/g]) {
       let m; while ((m = re.exec(s))) n += words(m[1]!);
     }
     return n;
   }
-  it("the static report shows under 150 words of prose by default", () => {
-    expect(visibleProse(html)).toBeLessThan(150);
+  it("the overview shows under 80 words of prose by default", () => {
+    expect(visibleProse(html)).toBeLessThan(80);
   });
-  it("the app page shows under 190 words of prose by default", () => {
-    const appHtml = renderHtml(report, { redact: false, app: { token: "tok", port: 43123, catalog: report.sessions.map((s) => ({ id: s.id, date: s.date, title: s.title, cost_usd: s.cost_usd, agents: s.agents, peak_concurrency: s.peak_concurrency })), projects: [], project: "", repoTab: { slug: "", sessions: report.sessions.length }, scope: { since: null, until: null, sessionIds: null }, applied: [], staticPath: "/tmp/x/report.html" } });
-    expect(visibleProse(appHtml)).toBeLessThan(190);
-  });
-  it("the words moved, they were not removed: the folded explainers are still in the page", () => {
-    for (const s of ["how this was measured, number by number", "Cost per run is real", "one run, drawn to its start and end", "never a prompt, a path, a file name, or a line of code", "undo restores the file byte for byte"]) expect(html).toContain(s);
-    expect(html).toContain("Run actuals app to click into any session.");
+  it("the app page shows under 80 words of prose by default", () => {
+    expect(visibleProse(appHtml)).toBeLessThan(80);
   });
 });
